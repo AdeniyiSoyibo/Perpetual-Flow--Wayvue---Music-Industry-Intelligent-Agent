@@ -5,7 +5,10 @@ import {
   Cpu, HardDrive, Mic2, Monitor, Layers, Zap, Shield,
   Settings, ChevronDown, ChevronUp, Activity, Headphones,
   Music, Waves, RefreshCw, Check, Lock, AlertCircle,
-  Play, Square, Circle, SkipBack, Plus, Volume2, Minus
+  Play, Square, Circle, SkipBack, Plus, Volume2, Minus,
+  Grid, List, Share2, Download, Piano, Sliders, GitBranch,
+  FolderOpen, Users, Upload, FileAudio, Repeat, Shuffle,
+  ArrowRight, Mic, BarChart2, Wand2
 } from "lucide-react";
 import { useUser } from "@/lib/userContext";
 
@@ -75,15 +78,15 @@ const ROOM_PRESETS = [
   { id:"club",      label:"Club Venue",    rt60:"1.8s",   desc:"Concrete walls, crowd absorption" },
   { id:"hall",      label:"Concert Hall",  rt60:"2.2s",   desc:"Large hall, warm diffuse tail" },
   { id:"cathedral", label:"Cathedral",     rt60:"4.5s",   desc:"Dense stone reverb" },
-  { id:"atmos",     label:"Atmos Room",    rt60:"0.4s",   desc:"Dolby-certified 7.1.4" },
+  { id:"atmos",     label:"Immersive Room",  rt60:"0.4s",   desc:"Immersive 7.1.4 object-based" },
 ];
 
 const MONITOR_PRESETS = [
-  { id:"genelec",  label:"Genelec 8050",  desc:"Accurate flat nearfield" },
-  { id:"ns10",     label:"Yamaha NS-10",  desc:"Mid-forward — expose problems" },
-  { id:"auratone", label:"Auratone 5C",   desc:"Mono mid-range check" },
-  { id:"hphone",   label:"Headphones",    desc:"Crossfeed binaural compensation" },
-  { id:"consumer", label:"Consumer HiFi", desc:"V-curve: boosted bass & treble" },
+  { id:"genelec",  label:"Precision Nearfield",      desc:"Accurate flat nearfield response" },
+  { id:"ns10",     label:"Mid-Forward Reference",    desc:"Mid-forward — exposes mix problems" },
+  { id:"mono",     label:"Single-Driver Mono Check", desc:"Mono mid-range translation check" },
+  { id:"hphone",   label:"Headphones",               desc:"Crossfeed binaural compensation" },
+  { id:"consumer", label:"Consumer Playback",        desc:"V-curve: boosted bass & treble" },
 ];
 
 const AI_SUGGESTIONS = [
@@ -106,6 +109,46 @@ const ACOUSTIC_ITEMS = [
   { icon:"🤖", label:"AI Self-Calibration",   detail:"Continuous session-over-session correction curve learning" },
   { icon:"📐", label:"Symmetrical Layout",    detail:"Equilateral triangle · tweeters at ear height" },
 ];
+
+// ── Step sequencer grid data ──────────────────────────────────────────────────
+const STEP_INSTRUMENTS = ["Kick","Snare","Hi-Hat","Clap","Tom","Open HH","Cowbell","FX"];
+const STEPS = 16;
+
+// ── Sample browser categories ─────────────────────────────────────────────────
+const SAMPLE_CATS = [
+  { label:"Drums",    samples:["Kick 808","Kick Punchy","Snare Crack","Snare Rimshot","Hi-Hat Closed","Hi-Hat Open","Clap Tight","Perc Loop"] },
+  { label:"Bass",     samples:["808 Sub C","808 Sub F","Reese Bass","Filtered Bass","Pluck Bass","DI Bass","Fretless","Upright"] },
+  { label:"Synths",   samples:["Supersaw Lead","Pad Warm","Stab House","Pluck Bell","Arp Rise","Chord Pad","Mono Lead","FM Bell"] },
+  { label:"Vocals",   samples:["Vox Chop 1","Breath FX","Ad-lib Hit","Falsetto Riff","Spoken Word","Choir Layer","Gospel One","Rap Stab"] },
+  { label:"FX",       samples:["Riser 4-bar","Impact Boom","Vinyl Crackle","White Noise","Tape Stop","Rewind FX","Transition","Downlifter"] },
+  { label:"Loops",    samples:["Afrobeat 128","Trap Loop 140","Lo-Fi 90","House 128","DnB 174","Reggae 90","Latin 100","Amapiano 112"] },
+];
+
+// ── Automation lanes ──────────────────────────────────────────────────────────
+const AUTO_PARAMS = ["Volume","Pan","Send A (Reverb)","Send B (Delay)","Plugin: Compressor Threshold","Plugin: EQ 100Hz","Plugin: EQ 1kHz","Pitch Bend"];
+
+// ── Export formats ────────────────────────────────────────────────────────────
+const EXPORT_FORMATS = [
+  { id:"wav48",   label:"WAV 48kHz / 24-bit",   desc:"Studio master — full quality" },
+  { id:"wav44",   label:"WAV 44.1kHz / 16-bit",  desc:"CD-spec delivery" },
+  { id:"wav32f",  label:"WAV 32-bit Float",       desc:"Maximum headroom for processing" },
+  { id:"aiff",    label:"AIFF 48kHz / 24-bit",    desc:"Studio master — broad DAW compatibility" },
+  { id:"flac",    label:"FLAC 48kHz / 24-bit",    desc:"Lossless compressed archive" },
+  { id:"mp3_320", label:"MP3 320kbps",             desc:"Streaming / reference listen" },
+  { id:"stems",   label:"Stem Export (per track)", desc:"Individual tracks — requires Pro" },
+  { id:"atmos",   label:"Immersive Audio ADM BWF",  desc:"Immersive 7.1.4 object delivery — requires Pro" },
+];
+
+// ── Piano roll note data ──────────────────────────────────────────────────────
+const NOTES = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+const PIANO_OCTAVES = [5,4,3];
+const DEMO_PATTERN = [
+  { note:"C5", beat:0 }, { note:"E5", beat:1 }, { note:"G5", beat:2 },
+  { note:"C5", beat:3 }, { note:"D5", beat:4 }, { note:"F5", beat:5 },
+  { note:"A5", beat:6 }, { note:"G5", beat:7 }, { note:"E5", beat:8 },
+  { note:"D5", beat:9 }, { note:"C5", beat:10 }, { note:"B4", beat:11 },
+];
+const TOTAL_PIANO_BEATS = 16;
 
 // ── Small reusable UI ─────────────────────────────────────────────────────────
 function Pill({ children, color = "bg-sky-100 text-sky-700" }: { children: React.ReactNode; color?: string }) {
@@ -246,9 +289,93 @@ export function ProductionStudio() {
     }, 80);
   };
 
+  // ── New section state ──────────────────────────────────────────────────────
+  // Step sequencer
+  const initGrid = () => STEP_INSTRUMENTS.map(() => Array(STEPS).fill(false));
+  const [grid, setGrid] = useState<boolean[][]>(initGrid);
+  const [stepSwing, setStepSwing] = useState(50);
+  const toggleStep = (row: number, col: number) =>
+    setGrid(g => g.map((r, ri) => ri === row ? r.map((v, ci) => ci === col ? !v : v) : r));
+
+  // Sample browser
+  const [sampleCat, setSampleCat] = useState("Drums");
+  const [sampleSearch, setSampleSearch] = useState("");
+  const [loadedSamples, setLoadedSamples] = useState<string[]>([]);
+  const sampleFileRef = useRef<HTMLInputElement>(null);
+  const curSamples = (SAMPLE_CATS.find(c => c.label === sampleCat)?.samples ?? [])
+    .filter(s => s.toLowerCase().includes(sampleSearch.toLowerCase()));
+
+  // Arranger / Song timeline
+  const [arrangerZoom, setArrangerZoom] = useState(1);
+  const ARRANGER_CLIPS = [
+    { track:0, start:0,  len:4,  label:"Intro",    color:"#38bdf8" },
+    { track:0, start:4,  len:8,  label:"Verse 1",  color:"#38bdf8" },
+    { track:0, start:12, len:4,  label:"Chorus 1", color:"#60a5fa" },
+    { track:1, start:0,  len:2,  label:"Bass Fill",color:"#a78bfa" },
+    { track:1, start:4,  len:8,  label:"Bass Main",color:"#a78bfa" },
+    { track:2, start:4,  len:4,  label:"Synth A",  color:"#34d399" },
+    { track:2, start:12, len:4,  label:"Synth B",  color:"#34d399" },
+    { track:3, start:8,  len:8,  label:"Vocals",   color:"#f472b6" },
+  ];
+  const TRACK_BARS = 16;
+
+  // Piano roll
+  const [pianoPattern, setPianoPattern] = useState(
+    DEMO_PATTERN.reduce<Record<string,boolean>>((acc, n) => { acc[`${n.note}-${n.beat}`] = true; return acc; }, {})
+  );
+  const [selectedOctave, setSelectedOctave] = useState(5);
+  const toggleNote = (note: string, beat: number) => {
+    const k = `${note}-${beat}`;
+    setPianoPattern(p => ({ ...p, [k]: !p[k] }));
+  };
+
+  // Automation
+  const [autoParam, setAutoParam] = useState(AUTO_PARAMS[0]);
+  const [autoPoints] = useState([0.8,0.75,0.72,0.78,0.65,0.70,0.80,0.85,0.78,0.72,0.68,0.70,0.75,0.80,0.82,0.78]);
+
+  // Per-track FX chain
+  const [fxTrack, setFxTrack] = useState<string>("t1");
+  const [fxChain, setFxChain] = useState<Record<string, { name:string; enabled:boolean }[]>>({
+    t1: [{ name:"Gate",enabled:true},{ name:"Comp",enabled:true},{ name:"EQ",enabled:true},{ name:"Reverb",enabled:false}],
+    t2: [{ name:"HP Filter",enabled:true},{ name:"Comp",enabled:true},{ name:"Saturator",enabled:false}],
+    t3: [{ name:"Arp",enabled:true},{ name:"Chorus",enabled:false},{ name:"Delay",enabled:true},{ name:"Reverb",enabled:true}],
+    t4: [{ name:"De-Esser",enabled:true},{ name:"Tuner",enabled:true},{ name:"Comp",enabled:true},{ name:"EQ",enabled:true},{ name:"Reverb",enabled:false}],
+    t5: [{ name:"Reverb",enabled:true},{ name:"Delay",enabled:true},{ name:"Flanger",enabled:false}],
+    t6: [{ name:"Bus Comp",enabled:true},{ name:"Limiter",enabled:true},{ name:"Clipper",enabled:false}],
+  });
+
+  // Export
+  const [exportFmt, setExportFmt] = useState("wav48");
+  const [exporting, setExporting] = useState(false);
+  const [exportPct, setExportPct] = useState(0);
+  const [exported, setExported] = useState(false);
+  const runExport = () => {
+    if (exporting) return;
+    setExporting(true); setExportPct(0); setExported(false);
+    let pct = 0;
+    const t = setInterval(() => {
+      pct += 3 + Math.random() * 7;
+      setExportPct(Math.min(100, pct));
+      if (pct >= 100) { clearInterval(t); setExporting(false); setExported(true); }
+    }, 80);
+  };
+
+  // Collaboration
+  const [colabLink] = useState("https://flow.app/session/pf-" + Math.random().toString(36).slice(2,8));
+  const [colabCopied, setColabCopied] = useState(false);
+  const copyColab = () => { navigator.clipboard.writeText(colabLink).catch(()=>{}); setColabCopied(true); setTimeout(()=>setColabCopied(false),2000); };
+  const COLLAB_USERS = [
+    { initials:"KV", name:"Kira Vault",   role:"Producer",   color:"#38bdf8", online:true  },
+    { initials:"AX", name:"Axiom",        role:"Mixer",      color:"#a78bfa", online:true  },
+    { initials:"DN", name:"Demi Nox",     role:"Vocalist",   color:"#f472b6", online:false },
+  ];
+
   // Sections open state
   const [open, setOpen] = useState<Record<string,boolean>>({
-    transport:true, mixer:true, plugins:false, ai:true, monitors:false, hw:false, acoustic:false
+    transport:true, mixer:true, stepseq:false, piano:false, arranger:false,
+    fx:false, automation:false, samples:false,
+    plugins:false, ai:true, monitors:false, hw:false, acoustic:false,
+    export:false, collab:false,
   });
   const tog = (k: string) => setOpen(o => ({ ...o, [k]: !o[k] }));
 
@@ -313,7 +440,7 @@ export function ProductionStudio() {
               <Pill color="bg-[#f0f4f8] text-[#4a6580]">44.1kHz · 24-bit</Pill>
               <button onClick={() => setAtmos(a => !a)}
                 className={`px-3 py-1.5 rounded-xl text-[10px] font-bold border transition-colors ${atmos ? "bg-purple-500 text-white border-transparent" : "border-[#cdd8e8] text-[#4a6580] hover:border-purple-400"}`}>
-                Dolby Atmos
+                Immersive Audio
               </button>
             </div>
           </div>
@@ -335,7 +462,7 @@ export function ProductionStudio() {
           </div>
           {atmos && (
             <div className="rounded-xl bg-purple-50 border border-purple-200 px-4 py-2 text-[11px] text-purple-700">
-              <span className="font-bold">Dolby Atmos 7.1.4 active — </span>
+              <span className="font-bold">Immersive Audio 7.1.4 active — </span>
               {["Bed (7.1.0)", "Kick (floor)", "Vocal (centre)", "FX (L/R overhead)", "Reverb (all objects)"].map(o => (
                 <span key={o} className="mr-2 font-mono">{o}</span>
               ))}
@@ -538,11 +665,11 @@ export function ProductionStudio() {
               { Icon:Mic2,       label:"Preamps (48V phantom)",    desc:"Class-A discrete · 4ch · EIN < –128 dB",          tier:"free" as const },
               { Icon:Monitor,    label:"Studio Monitors",          desc:"Calibrated stereo pair · room-corrected",          tier:"free" as const },
               { Icon:Headphones, label:"Reference Headphones",     desc:"Open-back + closed-back · crossfeed corrected",    tier:"free" as const },
-              { Icon:Settings,   label:"Motorized Fader Surface",  desc:"16-ch DAW controller · HUI/MCU",                  tier:"pro"  as const },
+              { Icon:Settings,   label:"Motorized Fader Surface",  desc:"16-ch DAW controller · standard control protocol", tier:"pro"  as const },
               { Icon:Settings,   label:"Monitor Controller",       desc:"Speaker switching · Dim/Mute · Mono sum",          tier:"free" as const },
-              { Icon:Zap,        label:"Hardware Bus Compressor",  desc:"VCA glue on mix bus · SSL G-style",                tier:"pro"  as const },
-              { Icon:Shield,     label:"500-Series Rack",          desc:"API 550-style analog EQ per channel",              tier:"pro"  as const },
-              { Icon:Shield,     label:"Macro Shortcut Deck",      desc:"Elgato Stream Deck · 32 workflow keys",            tier:"free" as const },
+              { Icon:Zap,        label:"Hardware Bus Compressor",  desc:"VCA glue on mix bus · discrete analog-style",      tier:"pro"  as const },
+              { Icon:Shield,     label:"500-Series Rack",          desc:"Discrete analog-style EQ per channel",             tier:"pro"  as const },
+              { Icon:Shield,     label:"Macro Shortcut Controller",desc:"Programmable shortcut deck · 32 workflow keys",    tier:"free" as const },
             ].map(({ Icon, label, desc, tier }) => {
               const blocked = tier === "pro" && !isPro;
               return (
@@ -640,6 +767,372 @@ export function ProductionStudio() {
           </div>
         </div>
       </Accordion>
+
+      {/* ── STEP SEQUENCER ─────────────────────────────────────────────────── */}
+      <Accordion id="stepseq" label="Beat Grid — Step Sequencer" icon={Grid}
+        badge={<Pill color="bg-emerald-100 text-emerald-700">16-step · 8 instruments</Pill>}
+        open={open.stepseq} toggle={() => tog("stepseq")}>
+        <div className="p-4 space-y-3">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex gap-2 flex-wrap">
+              {["4/4","3/4","6/8","5/4"].map(sig=>(
+                <button key={sig} className="px-3 py-1 rounded-lg border border-[#cdd8e8] text-[10px] font-bold text-[#4a6580] hover:border-sky-400 hover:text-sky-600 transition-colors">{sig}</button>
+              ))}
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-[#7a9abf]">Swing {stepSwing}%</span>
+              <input type="range" min={50} max={75} value={stepSwing} onChange={e=>setStepSwing(Number(e.target.value))} className="w-20 h-1.5" style={{accentColor:"#38bdf8"}} />
+              <button onClick={()=>setGrid(initGrid())} className="px-2 py-1 rounded-lg border border-[#cdd8e8] text-[10px] font-bold text-rose-500 hover:bg-rose-50 transition-colors">Clear</button>
+              <button onClick={()=>setGrid(STEP_INSTRUMENTS.map(()=>Array.from({length:STEPS},()=>Math.random()>0.75)))}
+                className="px-2 py-1 rounded-lg border border-sky-200 text-[10px] font-bold text-sky-600 hover:bg-sky-50 transition-colors">Random</button>
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <div className="min-w-[560px]">
+              <div className="flex mb-1 ml-20">
+                {Array.from({length:STEPS},(_,i)=>(
+                  <div key={i} className={`flex-1 text-center text-[9px] font-mono ${i%4===0?"text-sky-500 font-bold":"text-[#cdd8e8]"}`}>
+                    {i%4===0 ? Math.floor(i/4)+1 : "·"}
+                  </div>
+                ))}
+              </div>
+              {grid.map((row,ri)=>(
+                <div key={ri} className="flex items-center gap-1 mb-1">
+                  <div className="w-20 text-[10px] font-semibold text-[#4a6580] text-right pr-2 flex-shrink-0">{STEP_INSTRUMENTS[ri]}</div>
+                  {row.map((on,ci)=>(
+                    <button key={ci} onClick={()=>toggleStep(ri,ci)}
+                      className={`flex-1 h-7 rounded-md transition-all border ${on?"border-transparent shadow-sm":"border-[#e8eef5] bg-white hover:bg-sky-50"} ${ci%4===0&&!on?"bg-[#f8fafc]":""}`}
+                      style={on?{background:TRACK_COLORS[ri%TRACK_COLORS.length]}:undefined}/>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </Accordion>
+
+      {/* ── PIANO ROLL ─────────────────────────────────────────────────────── */}
+      <Accordion id="piano" label="Piano Roll — MIDI Editor" icon={Piano}
+        badge={<Pill color="bg-purple-100 text-purple-700">Click to toggle notes</Pill>}
+        open={open.piano} toggle={() => tog("piano")}>
+        <div className="p-4 space-y-3">
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] text-[#7a9abf]">Oct</span>
+              {PIANO_OCTAVES.map(o=>(
+                <button key={o} onClick={()=>setSelectedOctave(o)}
+                  className={`w-7 h-7 rounded-lg text-[10px] font-bold border transition-colors ${selectedOctave===o?"bg-purple-500 text-white border-transparent":"border-[#cdd8e8] text-[#4a6580] hover:border-purple-400"}`}>{o}</button>
+              ))}
+            </div>
+            <div className="flex gap-1 flex-wrap">
+              {["C Maj","A min","G Maj","Pentatonic","Blues"].map(scale=>(
+                <button key={scale} className="px-2 py-1 rounded-lg border border-[#cdd8e8] text-[9px] font-bold text-[#7a9abf] hover:border-purple-400 hover:text-purple-600 transition-colors">{scale}</button>
+              ))}
+            </div>
+            <button onClick={()=>setPianoPattern({})} className="ml-auto px-2 py-1 rounded-lg border border-[#cdd8e8] text-[10px] font-bold text-rose-500 hover:bg-rose-50 transition-colors">Clear</button>
+          </div>
+          <div className="overflow-x-auto">
+            <div className="min-w-[600px]">
+              <div className="flex mb-1 ml-24">
+                {Array.from({length:TOTAL_PIANO_BEATS},(_,i)=>(
+                  <div key={i} className={`flex-1 text-center text-[9px] font-mono ${i%4===0?"text-purple-500 font-bold":"text-[#cdd8e8]"}`}>{i%4===0?i/4+1:"·"}</div>
+                ))}
+              </div>
+              {PIANO_OCTAVES.flatMap(oct=>
+                [...NOTES].reverse().map(note=>{
+                  const full=`${note}${oct}`;
+                  const isBlack=note.includes("#");
+                  return (
+                    <div key={full} className="flex items-center mb-px">
+                      <div className={`w-24 h-6 flex-shrink-0 flex items-center justify-end pr-2 rounded-l-md text-[9px] font-mono font-bold border-r border-[#e8eef5] ${isBlack?"bg-[#1a2a3a] text-white/50":"bg-[#f8fafc] text-[#7a9abf]"}`}>{full}</div>
+                      {Array.from({length:TOTAL_PIANO_BEATS},(_,beat)=>{
+                        const on=pianoPattern[`${full}-${beat}`];
+                        return (
+                          <button key={beat} onClick={()=>toggleNote(full,beat)}
+                            className={`flex-1 h-6 border-r border-[#f0f4f8] transition-all ${on?"shadow-sm":isBlack?"bg-[#f0f4f8] hover:bg-purple-50":"bg-white hover:bg-purple-50"}`}
+                            style={on?{background:"#a78bfa"}:undefined}/>
+                        );
+                      })}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+          <p className="text-[10px] text-[#7a9abf]">Velocity · Chord builder · Scale snap — v0.6</p>
+        </div>
+      </Accordion>
+
+      {/* ── ARRANGER ────────────────────────────────────────────────────────── */}
+      <Accordion id="arranger" label="Arranger — Song Timeline" icon={List}
+        badge={<Pill color="bg-sky-100 text-sky-700">16 bars</Pill>}
+        open={open.arranger} toggle={() => tog("arranger")}>
+        <div className="p-4 space-y-3">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-[#7a9abf]">Zoom</span>
+              {[0.5,1,2,4].map(z=>(
+                <button key={z} onClick={()=>setArrangerZoom(z)}
+                  className={`px-2 py-1 rounded-lg text-[9px] font-bold border transition-colors ${arrangerZoom===z?"bg-sky-500 text-white border-transparent":"border-[#cdd8e8] text-[#4a6580] hover:border-sky-400"}`}>{z}×</button>
+              ))}
+            </div>
+            <div className="flex gap-1 flex-wrap">
+              {["Intro","Verse","Pre-Ch","Chorus","Bridge","Outro"].map(s=>(
+                <span key={s} className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-[#f0f4f8] text-[#7a9abf] border border-[#e8eef5]">{s}</span>
+              ))}
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <div style={{minWidth:`${TRACK_BARS*40*arrangerZoom}px`}}>
+              <div className="flex mb-1 ml-20">
+                {Array.from({length:TRACK_BARS},(_,i)=>(
+                  <div key={i} style={{flex:`0 0 ${40*arrangerZoom}px`}}
+                    className={`text-center text-[9px] font-mono border-l border-[#e8eef5] ${i%4===0?"text-sky-500 font-bold":"text-[#cdd8e8]"}`}>
+                    {i+1}
+                  </div>
+                ))}
+              </div>
+              {["Drums","Bass","Synth","Vocals"].map((tname,ti)=>(
+                <div key={tname} className="flex items-center mb-1">
+                  <div className="w-20 text-[10px] font-semibold text-[#4a6580] text-right pr-2 flex-shrink-0">{tname}</div>
+                  <div className="relative flex-1 h-8 bg-[#f8fafc] border border-[#e8eef5] rounded-r-xl overflow-hidden">
+                    {Array.from({length:TRACK_BARS},(_,i)=>(
+                      <div key={i} className="absolute top-0 bottom-0 border-l border-[#e8eef5]" style={{left:`${(i/TRACK_BARS)*100}%`}}/>
+                    ))}
+                    {ARRANGER_CLIPS.filter(c=>c.track===ti).map((c,ci)=>(
+                      <div key={ci} className="absolute top-1 bottom-1 rounded-lg flex items-center px-1.5 overflow-hidden cursor-pointer hover:brightness-110 transition-all"
+                        style={{left:`${(c.start/TRACK_BARS)*100}%`,width:`${(c.len/TRACK_BARS)*100}%`,background:c.color+"33",border:`1px solid ${c.color}66`}}>
+                        <span className="text-[9px] font-bold truncate" style={{color:c.color}}>{c.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <p className="text-[10px] text-[#7a9abf]">Drag clips · Loop markers · Full arrangement edit — v0.6</p>
+        </div>
+      </Accordion>
+
+      {/* ── PER-TRACK FX CHAIN ──────────────────────────────────────────────── */}
+      <Accordion id="fx" label="Per-Track Effects Chain" icon={Sliders}
+        badge={<Pill color="bg-indigo-100 text-indigo-700">Insert · Send · Bus routing</Pill>}
+        open={open.fx} toggle={() => tog("fx")}>
+        <div className="p-4 space-y-3">
+          <div className="flex flex-wrap gap-1.5">
+            {tracks.map(t=>(
+              <button key={t.id} onClick={()=>setFxTrack(t.id)}
+                className={`px-3 py-1.5 rounded-xl text-[10px] font-bold border transition-colors ${fxTrack===t.id?"text-white border-transparent":"border-[#cdd8e8] text-[#4a6580] hover:border-sky-400"}`}
+                style={fxTrack===t.id?{background:t.color}:undefined}>
+                {t.name}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            {(fxChain[fxTrack]??[]).map((fx,i)=>(
+              <div key={i} onClick={()=>setFxChain(c=>({...c,[fxTrack]:c[fxTrack].map((f,fi)=>fi===i?{...f,enabled:!f.enabled}:f)}))}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-semibold cursor-pointer transition-all ${fx.enabled?"border-sky-300 bg-sky-50 text-sky-700":"border-[#e8eef5] bg-[#f8fafc] text-[#7a9abf]"}`}>
+                <div className={`w-1.5 h-1.5 rounded-full ${fx.enabled?"bg-sky-400":"bg-[#cdd8e8]"}`}/>{fx.name}
+              </div>
+            ))}
+            <div className="text-[#cdd8e8] text-sm font-bold">→</div>
+            <div className="px-3 py-2 rounded-xl border border-dashed border-[#cdd8e8] text-[10px] font-bold text-[#cdd8e8]">Master</div>
+            <button onClick={()=>setFxChain(c=>({...c,[fxTrack]:[...(c[fxTrack]??[]),{name:"New FX",enabled:true}]}))}
+              className="flex items-center gap-1 px-2 py-1 rounded-lg border border-sky-200 text-sky-600 text-[10px] font-bold hover:bg-sky-50 transition-colors">
+              <Plus className="w-3 h-3"/>Add
+            </button>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {["Send A → Reverb Bus","Send B → Delay Bus","Send C → Sub Bus","Send D → Vocal Bus"].map(send=>(
+              <div key={send} className="flex items-center justify-between px-3 py-2 rounded-xl bg-[#f8fafc] border border-[#e8eef5]">
+                <span className="text-[10px] font-semibold text-[#4a6580]">{send}</span>
+                <input type="range" min={0} max={100} defaultValue={send.includes("Rev")?40:send.includes("Del")?25:0} className="w-20 h-1" style={{accentColor:"#38bdf8"}}/>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Accordion>
+
+      {/* ── AUTOMATION LANES ────────────────────────────────────────────────── */}
+      <Accordion id="automation" label="Automation Lanes" icon={GitBranch}
+        badge={<Pill color="bg-amber-100 text-amber-700">{AUTO_PARAMS.length} params</Pill>}
+        open={open.automation} toggle={() => tog("automation")}>
+        <div className="p-4 space-y-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[10px] text-[#7a9abf] font-semibold">Parameter:</span>
+            <select value={autoParam} onChange={e=>setAutoParam(e.target.value)}
+              className="text-xs border border-[#cdd8e8] rounded-lg px-2 py-1.5 bg-white text-[#1a2a3a] focus:outline-none focus:border-sky-400">
+              {AUTO_PARAMS.map(p=><option key={p} value={p}>{p}</option>)}
+            </select>
+            {["Write","Read","Latch","Touch"].map(m=>(
+              <button key={m} className="px-3 py-1 rounded-lg border border-[#cdd8e8] text-[10px] font-bold text-[#4a6580] hover:bg-sky-50 hover:border-sky-400 transition-colors">{m}</button>
+            ))}
+          </div>
+          <div className="relative h-20 bg-[#f8fafc] border border-[#e8eef5] rounded-xl overflow-hidden">
+            <svg viewBox={`0 0 ${autoPoints.length} 1`} preserveAspectRatio="none" className="w-full h-full">
+              <defs>
+                <linearGradient id="autoGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.3"/>
+                  <stop offset="100%" stopColor="#38bdf8" stopOpacity="0.02"/>
+                </linearGradient>
+              </defs>
+              <polyline points={autoPoints.map((v,i)=>`${i},${1-v}`).join(" ")} fill="none" stroke="#38bdf8" strokeWidth="0.04"/>
+              <polygon points={`0,1 ${autoPoints.map((v,i)=>`${i},${1-v}`).join(" ")} ${autoPoints.length-1},1`} fill="url(#autoGrad)"/>
+              {autoPoints.map((v,i)=>(
+                <circle key={i} cx={i} cy={1-v} r="0.06" fill="#38bdf8"/>
+              ))}
+            </svg>
+            {[0,4,8,12,16].map(b=>(
+              <div key={b} className="absolute top-0 bottom-0 border-l border-[#e8eef5]" style={{left:`${(b/16)*100}%`}}>
+                <span className="text-[8px] text-[#cdd8e8] ml-0.5">{b/4+1}</span>
+              </div>
+            ))}
+          </div>
+          <p className="text-[10px] text-[#7a9abf]">Draw curves · LFO shapes · Pencil/Line/Lasso tools — v0.6</p>
+        </div>
+      </Accordion>
+
+      {/* ── SAMPLE BROWSER ──────────────────────────────────────────────────── */}
+      <Accordion id="samples" label="Sample & Loop Browser" icon={FolderOpen}
+        badge={<Pill color="bg-orange-100 text-orange-700">{SAMPLE_CATS.reduce((s,c)=>s+c.samples.length,0)} samples</Pill>}
+        open={open.samples} toggle={() => tog("samples")}>
+        <div className="p-4 space-y-3">
+          <div className="flex flex-wrap gap-2 items-center">
+            {SAMPLE_CATS.map(c=>(
+              <button key={c.label} onClick={()=>setSampleCat(c.label)}
+                className={`px-3 py-1 rounded-lg text-[10px] font-bold border transition-colors ${sampleCat===c.label?"bg-orange-500 text-white border-transparent":"border-[#cdd8e8] text-[#4a6580] hover:border-orange-400"}`}>
+                {c.label}
+              </button>
+            ))}
+            <button onClick={()=>sampleFileRef.current?.click()}
+              className="flex items-center gap-1 px-3 py-1 rounded-lg border border-dashed border-[#cdd8e8] text-[10px] font-bold text-[#7a9abf] hover:border-sky-400 hover:text-sky-600 transition-colors ml-auto">
+              <Upload className="w-3 h-3"/>Upload
+            </button>
+            <input ref={sampleFileRef} type="file" accept="audio/*" multiple className="hidden"
+              onChange={e=>{if(e.target.files)setLoadedSamples(p=>[...p,...Array.from(e.target.files!).map(f=>f.name)]);}}/>
+          </div>
+          <input value={sampleSearch} onChange={e=>setSampleSearch(e.target.value)}
+            placeholder="Search samples…" className="w-full text-xs px-3 py-2 rounded-xl border border-[#cdd8e8] bg-[#f8fafc] focus:outline-none focus:border-sky-400 text-[#1a2a3a] placeholder:text-[#cdd8e8]"/>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 max-h-44 overflow-y-auto">
+            {curSamples.map(s=>(
+              <div key={s} className="flex items-center gap-1.5 px-2.5 py-2 rounded-xl border border-[#e8eef5] bg-white hover:border-orange-300 hover:bg-orange-50 transition-colors cursor-pointer group">
+                <FileAudio className="w-3 h-3 text-[#cdd8e8] group-hover:text-orange-400 flex-shrink-0"/>
+                <span className="text-[10px] font-semibold text-[#1a2a3a] truncate">{s}</span>
+              </div>
+            ))}
+            {loadedSamples.map(s=>(
+              <div key={s} className="flex items-center gap-1.5 px-2.5 py-2 rounded-xl border border-sky-200 bg-sky-50 cursor-pointer">
+                <FileAudio className="w-3 h-3 text-sky-400 flex-shrink-0"/>
+                <span className="text-[10px] font-semibold text-sky-700 truncate">{s}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Accordion>
+
+      {/* ── EXPORT ──────────────────────────────────────────────────────────── */}
+      <Accordion id="export" label="Export & Delivery" icon={Download}
+        badge={<Pill color="bg-green-100 text-green-700">WAV · FLAC · MP3 · Stems · Atmos</Pill>}
+        open={open.export} toggle={() => tog("export")}>
+        <div className="p-4 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+            {EXPORT_FORMATS.map(f=>{
+              const blocked=(f.id==="stems"||f.id==="atmos")&&!isPro;
+              return (
+                <div key={f.id} onClick={()=>!blocked&&setExportFmt(f.id)}
+                  className={`flex flex-col px-3 py-2.5 rounded-xl border cursor-pointer transition-all ${exportFmt===f.id?"border-sky-400 bg-sky-50 shadow-sm":"border-[#cdd8e8] bg-white hover:border-sky-200"} ${blocked?"opacity-50 cursor-not-allowed":""}`}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[10px] font-bold text-[#1a2a3a]">{f.label}</span>
+                    {exportFmt===f.id&&<Check className="w-3 h-3 text-sky-500"/>}
+                    {blocked&&<Lock className="w-3 h-3 text-[#cdd8e8]"/>}
+                  </div>
+                  <span className="text-[9px] text-[#7a9abf]">{f.desc}</span>
+                  {(f.id==="stems"||f.id==="atmos")&&<Pill color="bg-yellow-100 text-yellow-600">Pro</Pill>}
+                </div>
+              );
+            })}
+          </div>
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-2 text-xs text-[#4a6580]">
+              <span>Normalize to:</span>
+              {["-14 LUFS (Streaming)","-16 LUFS (Podcast)","-23 LUFS (Broadcast)","Off"].map(n=>(
+                <button key={n} className="px-2 py-1 rounded-lg border border-[#cdd8e8] text-[9px] font-bold hover:border-sky-400 hover:text-sky-600 transition-colors">{n}</button>
+              ))}
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <button onClick={runExport} disabled={exporting}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm text-white shadow-sm transition-colors ${exporting?"bg-[#7a9abf] cursor-wait":"bg-gradient-to-r from-sky-500 to-blue-600 hover:opacity-90"}`}>
+              <Download className="w-4 h-4"/>
+              {exporting ? "Exporting…" : exported ? "Export Again" : "Export Mix"}
+            </button>
+            {isPro&&<button className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm border border-purple-300 text-purple-600 hover:bg-purple-50 transition-colors"><FileAudio className="w-4 h-4"/>Export Stems</button>}
+          </div>
+          {exporting&&(
+            <div>
+              <div className="h-2 rounded-full bg-[#e8eef5] overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-sky-400 to-blue-500 rounded-full transition-all" style={{width:`${exportPct}%`}}/>
+              </div>
+              <p className="text-[10px] text-[#7a9abf] mt-1">Rendering… {Math.round(exportPct)}%</p>
+            </div>
+          )}
+          {exported&&!exporting&&(
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-green-50 border border-green-200 text-green-700 text-xs font-semibold">
+              <Check className="w-4 h-4"/>Mix exported successfully · Ready for delivery
+            </div>
+          )}
+        </div>
+      </Accordion>
+
+      {/* ── COLLABORATION ───────────────────────────────────────────────────── */}
+      <Accordion id="collab" label="Collaboration — Real-Time Session" icon={Users}
+        badge={<Pill color="bg-rose-100 text-rose-700">2 online now</Pill>}
+        open={open.collab} toggle={() => tog("collab")}>
+        <div className="p-4 space-y-4">
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-[#f0f4f8] border border-[#cdd8e8]">
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] text-[#7a9abf] font-semibold">Session Link</p>
+              <p className="text-xs font-mono text-[#1a2a3a] truncate">{colabLink}</p>
+            </div>
+            <button onClick={copyColab}
+              className={`px-3 py-1.5 rounded-xl text-[10px] font-bold border transition-colors flex-shrink-0 ${colabCopied?"bg-green-500 text-white border-transparent":"border-sky-300 text-sky-600 hover:bg-sky-50"}`}>
+              {colabCopied?"Copied!":"Copy Link"}
+            </button>
+          </div>
+          <div className="space-y-2">
+            {COLLAB_USERS.map(u=>(
+              <div key={u.name} className="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-[#e8eef5] bg-white">
+                <div className="relative">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                    style={{background:u.color}}>{u.initials}</div>
+                  <span className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white ${u.online?"bg-green-400":"bg-[#cdd8e8]"}`}/>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-[#1a2a3a]">{u.name}</p>
+                  <p className="text-[10px] text-[#7a9abf]">{u.role} · {u.online?"Editing now":"Last seen 2h ago"}</p>
+                </div>
+                <div className="flex gap-1">
+                  <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${u.online?"bg-green-100 text-green-600":"bg-[#f0f4f8] text-[#7a9abf]"}`}>
+                    {u.online?"Online":"Offline"}
+                  </span>
+                </div>
+              </div>
+            ))}
+            <button className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-dashed border-[#cdd8e8] text-[10px] font-bold text-[#7a9abf] hover:border-sky-400 hover:text-sky-600 transition-colors">
+              <Plus className="w-3 h-3"/>Invite collaborator
+            </button>
+          </div>
+          <div className="grid grid-cols-3 gap-2 text-center">
+            {[{l:"Version",v:"v14 (auto-saved)"},{l:"Changes",v:"38 edits"},{l:"Comments",v:"5 threads"}].map(({l,v})=>(
+              <div key={l} className="rounded-xl bg-[#f8fafc] border border-[#e8eef5] px-2 py-2">
+                <div className="text-[9px] text-[#7a9abf] font-semibold">{l}</div>
+                <div className="text-[10px] font-bold text-[#1a2a3a] mt-0.5">{v}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Accordion>
+
     </div>
   );
 }

@@ -171,43 +171,35 @@ export function SamplePad() {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-[#cdd8e8] shadow-sm overflow-hidden">
-      <div className="px-5 py-3 border-b border-[#e8eef5] flex items-center gap-2">
-        <span className="text-sm font-bold text-[#1a2a3a]">Sample Pads</span>
-        <span className="text-[10px] text-[#7a9abf]">Tap to fire · Right-click / long-press pad to load your own sound</span>
+    <div className="bg-[#1e2430] rounded-2xl border border-[#2e3a4e] overflow-hidden">
+      <div className="px-4 pt-3 pb-2 border-b border-[#2e3a4e] flex items-center justify-between">
+        <div>
+          <span className="text-xs font-bold text-white tracking-widest uppercase">Sample Pads</span>
+          <p className="text-[9px] text-[#8b949e] mt-0.5">Tap to fire · hover &amp; click to load custom audio</p>
+        </div>
       </div>
-      <div className="p-4 grid grid-cols-4 gap-2">
+      <div className="px-4 py-3 flex flex-wrap gap-2 justify-center">
         {pads.map(pad => (
           <div key={pad.id} className="relative group">
             <button
               onClick={() => trigger(pad)}
               disabled={loading === pad.id}
-              className={`w-full flex flex-col items-center justify-center gap-1 py-4 rounded-xl text-white font-semibold text-xs transition-all select-none
-                ${pad.color} ${active === pad.id ? "scale-95 brightness-75" : "hover:brightness-110 active:scale-95"} shadow-sm
-                ${loading === pad.id ? "opacity-60 cursor-wait" : ""}`}>
-              <span className="text-lg leading-none">{loading === pad.id ? "⏳" : pad.custom ? "🎵" : "▶"}</span>
-              <span className="truncate w-full text-center px-1">{pad.label}</span>
-              {pad.custom && <span className="text-[8px] opacity-70">custom</span>}
+              className={`w-24 h-14 rounded-xl text-white font-bold text-[11px] tracking-wide transition-all select-none
+                border border-white/10 shadow-lg
+                ${pad.color}
+                ${active === pad.id ? "scale-90 brightness-150 shadow-[0_0_12px_rgba(255,255,255,0.4)]" : "hover:brightness-125 hover:scale-105 active:scale-90"}
+                ${loading === pad.id ? "opacity-40 cursor-wait" : ""}`}>
+              {loading === pad.id ? "…" : pad.label}
+              {pad.custom && <span className="ml-1 text-yellow-300">★</span>}
             </button>
-            {/* Upload / reset overlay — appears on hover */}
-            <div className="absolute inset-x-0 -bottom-0.5 hidden group-hover:flex gap-0.5 px-0.5 pb-0.5 z-10">
-              <label className="flex-1 flex items-center justify-center py-1 rounded-b-xl bg-black/70 text-white text-[9px] font-bold cursor-pointer hover:bg-black/90 transition-colors" title="Load your own audio file onto this pad">
-                📂
-                <input type="file" accept="audio/*" className="hidden"
-                  ref={el => { fileRefs.current[pad.id] = el; }}
-                  onChange={e => { const f = e.target.files?.[0]; if (f) handleUpload(pad.id, f); e.target.value = ""; }} />
-              </label>
-              {pad.custom && (
-                <button onClick={() => resetPad(pad.id)}
-                  className="flex-1 flex items-center justify-center py-1 rounded-b-xl bg-black/70 text-white text-[9px] font-bold hover:bg-black/90 transition-colors" title="Reset to default synth sound">
-                  ↺
-                </button>
-              )}
-            </div>
+            <label className="absolute inset-0 opacity-0 cursor-pointer" title="Load custom audio">
+              <input type="file" accept="audio/*" className="hidden"
+                ref={el => { fileRefs.current[pad.id] = el; }}
+                onChange={e => { const f = e.target.files?.[0]; if (f) handleUpload(pad.id, f); e.target.value = ""; }} />
+            </label>
           </div>
         ))}
       </div>
-      <div className="px-5 pb-3 text-[10px] text-[#7a9abf]">Hover a pad → 📂 to load your own MP3/WAV/OGG · ↺ to restore default</div>
     </div>
   );
 }

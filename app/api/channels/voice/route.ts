@@ -17,6 +17,8 @@ export async function POST(req: Request) {
   let transcript = ''
   let language: Language | undefined = undefined
   let isTwiml = false
+  let prevQuestion = ''
+  let prevAnswer = ''
 
   const ct = req.headers.get('content-type') ?? ''
   if (ct.includes('application/x-www-form-urlencoded')) {
@@ -30,6 +32,8 @@ export async function POST(req: Request) {
     phone = normalisePhone(body.phone)
     transcript = String(body.transcript ?? '').slice(0, MAX_QUESTION)
     language = parseLanguage(body.language)
+    prevQuestion = String(body.prevQuestion ?? '')
+    prevAnswer = String(body.prevAnswer ?? '')
   }
 
   if (!phone) {
@@ -42,7 +46,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const result = await runAdvisor({ phone, channel: 'voice', question: transcript, language })
+    const result = await runAdvisor({ phone, channel: 'voice', question: transcript, language, prevQuestion, prevAnswer })
     if (isTwiml) {
       const locale = SPEECH_LOCALE[language ?? 'en']
       const safeReply = escapeXml(result.reply)

@@ -9,6 +9,7 @@ import {
 import { useUser } from "@/lib/userContext";
 import { usePlatformStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
+import { ModeBar } from "@/components/layout/ModeBar";
 import type { Track } from "@/lib/types";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -154,7 +155,7 @@ export default function ANRPage() {
     <div className="flex flex-col gap-4 p-4 lg:p-6 bg-[#f0f4f8] min-h-screen">
 
       {/* Header */}
-      <div className="gradient-header rounded-2xl px-5 py-4 border border-sky-100">
+      <div className="gradient-header rounded-2xl px-5 py-4 border border-sky-100 space-y-3">
         <div className="flex flex-wrap items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-400 to-orange-500 flex items-center justify-center shadow-sm flex-shrink-0">
             <Users className="w-5 h-5 text-white" />
@@ -172,6 +173,7 @@ export default function ANRPage() {
             </div>
           </div>
         </div>
+        <ModeBar />
       </div>
 
       {/* Stats row */}

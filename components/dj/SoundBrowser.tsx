@@ -156,6 +156,21 @@ function beatboxBass() {
 }
 
 // ── CATEGORIES & SOUNDS ──────────────────────────────────────────────────────
+const CATEGORY_ACTIVE: Record<string, string> = {
+  drums:       "bg-red-500 text-white border-red-400",
+  bass:        "bg-orange-500 text-white border-orange-400",
+  synth:       "bg-sky-500 text-white border-sky-400",
+  instruments: "bg-emerald-500 text-white border-emerald-400",
+  vocal:       "bg-purple-500 text-white border-purple-400",
+};
+const SOUND_ACTIVE: Record<string, string> = {
+  drums:       "bg-red-500/90 text-white border-red-400 shadow-[0_0_8px_rgba(239,68,68,0.6)]",
+  bass:        "bg-orange-500/90 text-white border-orange-400 shadow-[0_0_8px_rgba(249,115,22,0.6)]",
+  synth:       "bg-sky-500/90 text-white border-sky-400 shadow-[0_0_8px_rgba(14,165,233,0.6)]",
+  instruments: "bg-emerald-500/90 text-white border-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.6)]",
+  vocal:       "bg-purple-500/90 text-white border-purple-400 shadow-[0_0_8px_rgba(168,85,247,0.6)]",
+};
+
 const CATEGORIES: { id: string; label: string; color: string; sounds: SoundDef[] }[] = [
   {
     id: "drums", label: "Drums", color: "bg-red-500",
@@ -227,21 +242,21 @@ export function SoundBrowser() {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-[#cdd8e8] shadow-sm overflow-hidden">
+    <div className="bg-[#1e2430] rounded-2xl border border-[#2e3a4e] overflow-hidden">
       {/* Header */}
-      <div className="px-5 py-3 border-b border-[#e8eef5] flex items-center gap-2 flex-wrap">
-        <span className="text-sm font-bold text-[#1a2a3a]">Sound Browser</span>
-        <span className="text-[10px] text-[#7a9abf]">Choose sounds, melodies, beats &amp; instruments to layer into your mix</span>
+      <div className="px-5 py-3 border-b border-[#2e3a4e] flex items-center gap-3 flex-wrap">
+        <span className="text-xs font-bold text-white tracking-widest uppercase">Sound Browser</span>
+        <span className="text-[10px] text-[#8b949e]">Choose sounds, melodies, beats &amp; instruments to layer into your mix</span>
       </div>
 
       {/* Category tabs */}
       <div className="flex gap-1.5 px-4 pt-3 pb-0 flex-wrap">
         {CATEGORIES.map(c => (
           <button key={c.id} onClick={() => setActiveCategory(c.id)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+            className={`px-3 py-1 rounded-lg text-[10px] font-bold tracking-wide border transition-all ${
               activeCategory === c.id
-                ? `${c.color} text-white shadow-sm`
-                : "bg-[#f0f4f8] text-[#7a9abf] hover:text-[#1a2a3a]"
+                ? CATEGORY_ACTIVE[c.id]
+                : "bg-[#252d3a] border-[#2e3a4e] text-[#8b949e] hover:text-white hover:border-[#5a6a80]"
             }`}>
             {c.label}
           </button>
@@ -249,22 +264,17 @@ export function SoundBrowser() {
       </div>
 
       {/* Sound grid */}
-      <div className="p-4 grid grid-cols-3 sm:grid-cols-6 gap-2">
+      <div className="p-4 grid grid-cols-6 gap-2">
         {cat.sounds.map(sound => (
           <button key={sound.id} onClick={() => trigger(sound)}
-            className={`flex flex-col items-center justify-center gap-1 py-3 rounded-xl text-xs font-semibold border-2 transition-all select-none
+            className={`py-2.5 rounded-xl text-[10px] font-bold border transition-all select-none active:scale-95
               ${active === sound.id
-                ? `${cat.color} text-white border-transparent scale-95`
-                : `bg-[#f0f4f8] border-[#e8eef5] text-[#4a6580] hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700 active:scale-95`
+                ? SOUND_ACTIVE[cat.id]
+                : "bg-[#252d3a] border-[#2e3a4e] text-[#8b949e] hover:text-white hover:border-[#5a6a80] hover:bg-[#2e3a4e]"
               }`}>
-            <span className="font-mono text-[11px] font-bold">{sound.label}</span>
+            {sound.label}
           </button>
         ))}
-      </div>
-
-      {/* Hint */}
-      <div className="px-4 pb-3 text-[10px] text-[#cdd8e8] text-center">
-        All sounds play on top of your active decks · tap rapidly to layer rhythms
       </div>
     </div>
   );

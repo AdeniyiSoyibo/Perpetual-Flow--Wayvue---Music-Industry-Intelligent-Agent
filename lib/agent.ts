@@ -8,6 +8,7 @@ import {
   addMessage,
   createEscalation,
   getFarmer,
+  getConversation,
   type AnswerStatus,
   type Channel,
   type Language,
@@ -15,6 +16,7 @@ import {
 } from './store-legacy'
 
 const MODEL = process.env.AI_MODEL ?? ''
+const VISION_MODEL = process.env.AI_VISION_MODEL ?? MODEL
 
 const SMS_LIMIT = 300
 
@@ -60,34 +62,123 @@ STYLE:
  * Degraded mode when the model is unreachable: quote the most relevant
  * validated passage verbatim. Still fully grounded and cited.
  */
-const WARM_OPENERS: Record<string, string> = {
-  nitrogen:    "Good question about nitrogen.",
-  replant:     "Here's what I'd look at for replanting.",
-  disease:     "Let's talk about what might be hitting your crop.",
-  weeds:       "Here's the deal on weeds.",
-  planting:    "On planting — here's what matters most.",
-  pests:       "Let me tell you what to watch for.",
-  harvest:     "Here's what to know about harvest.",
-  economics:   "On the numbers side —",
-  'cover-crops': "Cover crops are worth it. Here's the key thing.",
-  soil:        "Soil compaction can hurt you. Here's what to do.",
+// Query-specific openers based on key terms in the question
+function queryOpener(query: string, topic: string): string {
+  const q = query.toLowerCase()
+  if (/yellow|pale|chloro/.test(q) && /rain|wet|flood/.test(q)) return "Here's the quick way to tell what's going on."
+  if (/yellow|pale/.test(q) && /lower|bottom|midrib/.test(q)) return "That sounds like a nutrient problem."
+  if (/yellow|pale/.test(q) && /new|upper|whorl|twisted/.test(q)) return "New leaf symptoms point to a specific cause."
+  if (/lost|lose|losing.*nitrogen|nitrogen.*rain/.test(q)) return "Good news — don't panic yet."
+  if (/how much nitrogen|nitrogen rate|n rate/.test(q)) return "Here's what the research says on nitrogen rates."
+  if (/sidedress|psnt|lsnt/.test(q)) return "Here's when and how to decide on sidedress nitrogen."
+  if (/replant|should I replant/.test(q)) return "Here's how to make that replant call."
+  if (/stand|plants per/.test(q)) return "Here's how to read your stand count."
+  if (/hail/.test(q)) return "Wait before you do anything — here's why."
+  if (/flood|under water|saturated/.test(q)) return "Here's what to look for after flooding."
+  if (/tar spot/.test(q)) return "Tar spot needs quick action — here's the key."
+  if (/rust/.test(q)) return "Here's what you need to know about rust right now."
+  if (/gray leaf|nclb|blight|disease|spots|lesion/.test(q)) return "Let me help you identify what you're seeing."
+  if (/fungicide|spray/.test(q) && /pay|worth|money/.test(q)) return "Here's the honest answer on fungicide return."
+  if (/fungicide|spray/.test(q)) return "Here's when spraying makes sense."
+  if (/waterhemp|palmer|pigweed/.test(q)) return "Waterhemp is tough — here's the approach that works."
+  if (/herbicide|weed/.test(q)) return "Here's what to do about your weed program."
+  if (/aphid/.test(q)) return "Before you spray, here's the threshold to know."
+  if (/rootworm|lodg/.test(q)) return "That's a rootworm question — here's what to look for."
+  if (/cutworm|japanese beetle|silk/.test(q)) return "Here's the scouting threshold that matters."
+  if (/harvest|pick|moisture.*corn|corn.*moisture/.test(q)) return "Here's how to think about harvest timing."
+  if (/stor|bin|aeration|spoil/.test(q)) return "Here's what keeps grain safe in the bin."
+  if (/shrink/.test(q)) return "Shrink adds up fast — here's the math."
+  if (/losing money|breakeven|prices/.test(q)) return "Here's the honest look at the numbers."
+  if (/rotation|corn after corn|soybean/.test(q)) return "Here's what rotation research shows."
+  if (/cover crop/.test(q) && /terminat|kill/.test(q)) return "Timing your cover crop termination really matters."
+  if (/cover crop/.test(q) && /green|alive|living/.test(q)) return "Planting green works — here's when it doesn't."
+  if (/soil.*wet|wet.*soil|waterlog|soggy|standing water|tile drain|flooded field|too wet/.test(q)) return "Here's what wet soil means for your corn."
+  if (/compact/.test(q)) return "Compaction hurts yields — here's the fix."
+  if (/soil temp/.test(q)) return "Here's the soil temperature rule for corn."
+  if (/late plant|June|delay/.test(q)) return "Late planting costs yield — here's how much."
+  if (/no.till|notill/.test(q)) return "Here's what no-till means for your corn."
+  if (/insur/.test(q)) return "Call your agent first — here's what to document."
+  if (/carryover|herbicide injur/.test(q)) return "Carryover injury has a pattern — here's how to tell."
+  // Topic fallbacks
+  const topicOpeners: Record<string, string> = {
+    nitrogen: "Here's what you need to know about nitrogen.",
+    replant: "Here's what I'd look at for replanting.",
+    disease: "Let's talk about what might be hitting your crop.",
+    weeds: "Here's the deal on weeds.",
+    planting: "On planting — here's what matters most.",
+    pests: "Let me tell you what to watch for.",
+    harvest: "Here's what to know about harvest.",
+    economics: "On the numbers side —",
+    'cover-crops': "Cover crops are worth it. Here's the key thing.",
+    soil: "Soil compaction can hurt you. Here's what to do.",
+  }
+  return topicOpeners[topic] ?? "Here's what the research says."
 }
 
 function extractiveAnswer(query: string, retrieved: Map<string, RetrievalHit>, toolCalls: string[]) {
   toolCalls.push('fallback:extractive')
-  const [top] = search(query, 1)
-  if (!top) return null
-  retrieved.set(top.id, top)
-  const terms = new Set(tokenize(query))
-  const sentences = top.excerpt.split(/(?<=\.)\s+/)
-  const ranked = sentences
-    .map((s, i) => ({ s, i, score: tokenize(s).filter((w) => terms.has(w)).length }))
-    .sort((a, b) => b.score - a.score || a.i - b.i)
-    .slice(0, 3)
-    .sort((a, b) => a.i - b.i)
-  const body = ranked.map((r) => r.s).join(' ')
-  const opener = WARM_OPENERS[top.topic] ?? "Here's what the research says."
-  return { id: top.id, answer: `${opener} ${body}` }
+  const hits = search(query, 3)
+  if (!hits.length) return null
+
+  // Always mark the top hit as retrieved so it gets cited
+  for (const h of hits) retrieved.set(h.id, h)
+
+  const bestHit = hits[0]
+  const opener = queryOpener(query, bestHit.topic)
+
+  // Use the full excerpt from the best-matching doc — it's already a coherent
+  // passage written in plain English. Sentence-picking produces choppy fragments.
+  const body = simplify(bestHit.excerpt.trim())
+
+  return { id: bestHit.id, score: bestHit.score, answer: `${opener} ${body}` }
+}
+
+/** Replace scientific/technical phrases with plain farmer English */
+function simplify(text: string): string {
+  return text
+    .replace(/\bPhyllachora maydis\b/gi, 'the tar spot fungus')
+    .replace(/\bPuccinia polysora\b/gi, 'the southern rust fungus')
+    .replace(/\bCercospora zeae-maydis\b/gi, 'the gray leaf spot fungus')
+    .replace(/\bDiabrotica virgifera\b/gi, 'corn rootworm')
+    .replace(/\bAmaranthus tuberculatus\b/gi, 'waterhemp')
+    .replace(/\bdenitrification\b/gi, 'nitrogen escaping as gas')
+    .replace(/\bleaching\b/gi, 'nitrogen washing below the roots')
+    .replace(/\bPSNT\b/g, 'soil nitrate test')
+    .replace(/\bLSNT\b/g, 'late-spring soil test')
+    .replace(/\bMRTN\b/g, 'the most profitable nitrogen rate')
+    .replace(/\bGDU[s]?\b/g, 'heat units')
+    .replace(/\bRM\b/g, 'relative maturity')
+    .replace(/\bVT\b/g, 'tasseling')
+    .replace(/\bR1\b/g, 'silking')
+    .replace(/\bR3\b/g, 'milk stage')
+    .replace(/\bR4\b/g, 'dough stage')
+    .replace(/\bR5\b/g, 'dent stage')
+    .replace(/\bR6\b/g, 'black layer')
+    .replace(/\bV(\d+)\s*(?:to|-)\s*V(\d+)\b/g, 'when corn has $1 to $2 leaves')
+    .replace(/\bV(\d+)\b/g, (_m, n) => {
+      const leaf = parseInt(n)
+      if (leaf <= 2) return `seedling stage (${n} leaves)`
+      if (leaf <= 5) return `early stage (${n} leaves, about knee-high)`
+      if (leaf <= 8) return `mid-vegetative stage (${n} leaves)`
+      return `late vegetative stage (${n} leaves)`
+    })
+    .replace(/\bppm\b/g, 'parts per million')
+    .replace(/\bpsi\b/gi, 'pounds per square inch')
+    .replace(/\bBt\b/g, 'insect-resistant')
+    .replace(/\bameliorat\w+\b/gi, 'fix')
+    .replace(/\ballelopath\w+\b/gi, 'chemical interference')
+    .replace(/\bpyroxasulfone\b/gi, 'a Group 15 herbicide')
+    .replace(/\bs-metolachlor\b/gi, 'a Group 15 herbicide')
+    .replace(/\bacetochlor\b/gi, 'a Group 15 herbicide')
+    .replace(/\bazoxystrobin\b/gi, 'a strobilurin fungicide')
+    .replace(/\bpyraclostrobin\b/gi, 'a strobilurin fungicide')
+    .replace(/\bchloropyhll\b/gi, 'the green in leaves')
+    .replace(/\binterveinal chlorosis\b/gi, 'yellow stripes between the leaf veins')
+    .replace(/\bpenetrometer\b/gi, 'a soil probe')
+    .replace(/\bhardpan\b/gi, 'compacted layer')
+    .replace(/\bsubsoiler\b/gi, 'deep-tillage tool')
+    .replace(/\bmesonet\b/gi, 'the Iowa weather network')
+    .trim()
 }
 
 export interface AdviceResult {
@@ -101,12 +192,16 @@ export async function runAdvisor(input: {
   question: string
   language?: Language
   observations?: string
+  prevQuestion?: string
+  prevAnswer?: string
 }): Promise<AdviceResult> {
   const started = Date.now()
   const farmer = getFarmer(input.phone)
   const language = input.language ?? farmer?.language ?? 'en'
   void language // English-only MVP; kept for API compatibility
-  const risk = assessRisk(input.question)
+  // For photo channel with no caption, treat observations as the question for risk + search
+  const effectiveQuestion = input.question.trim() || input.observations || input.question
+  const risk = assessRisk(effectiveQuestion)
 
   addMessage({
     phone: input.phone,
@@ -121,9 +216,28 @@ export async function runAdvisor(input: {
   const toolCalls: string[] = []
   let agentRequestedEscalation: string | null = null
 
+  // Use client-provided previous Q&A (reliable — not affected by server restarts)
+  const lastReply = input.prevAnswer ?? ''
+  const lastQuestion = input.prevQuestion ?? ''
+
+  // Detect vague follow-up ("what should I do", "tell me more", "and then what", etc.)
+  const isVagueFollowUp = lastReply.length > 0 &&
+    input.question.split(/\s+/).length <= 6 &&
+    /^(what|how|why|when|tell|explain|and|so|ok|yes|okay|more|next|then|after|should i|can i|do i|is it|will it)\b/i.test(input.question.trim())
+
+  // For vague follow-ups, use the previous question + answer as the search query.
+  // For photo with no caption, use observations as the search query.
+  const effectiveQuery = isVagueFollowUp && lastQuestion
+    ? `${lastQuestion} ${input.question}`
+    : effectiveQuestion
+
+  const contextPrefix = lastReply && isVagueFollowUp
+    ? `You asked about: "${lastQuestion}". My previous answer was: "${lastReply.replace(/\s*\[Src:[^\]]+\]/g, '').slice(0, 150)}". Follow-up question: `
+    : ''
+
   const prompt = input.observations
     ? `Farmer sent a photo. Visual observations (not a diagnosis): ${input.observations}\nFarmer's message: ${input.question || '(no caption)'}`
-    : input.question
+    : `${contextPrefix}${effectiveQuery}`
 
   let status: AnswerStatus = 'refused'
   let answer = REFUSE
@@ -187,20 +301,32 @@ export async function runAdvisor(input: {
       console.log('[Harvest IQ] Agent error, falling back to extractive:', error instanceof Error ? error.message : error)
       const fallback = extractiveAnswer(`${input.question} ${input.observations ?? ''}`, retrieved, toolCalls)
       if (fallback && !risk.highStakes) {
-        status = 'answered'
-        answer = fallback.answer
-        cited = [fallback.id]
+        if (fallback.score < 1.5) {
+          status = 'answered'
+          answer = `I want to make sure I give you the right answer. Could you give me a little more detail — for example, what you're seeing in your field right now? ${fallback.answer}`
+          cited = [fallback.id]
+        } else {
+          status = 'answered'
+          answer = fallback.answer
+          cited = [fallback.id]
+        }
       }
     }
   } else {
     // ── Extractive fallback path (no AI_MODEL configured) ────────────────────
     // Directly searches the validated knowledge base and quotes the most
     // relevant passage. Fully grounded and cited — no AI model required.
-    const fallback = extractiveAnswer(`${input.question} ${input.observations ?? ''}`, retrieved, toolCalls)
+    const fallback = extractiveAnswer(`${effectiveQuestion} ${input.observations ?? ''}`.trim(), retrieved, toolCalls)
     if (fallback && !risk.highStakes) {
-      status = 'answered'
-      answer = fallback.answer
-      cited = [fallback.id]
+      if (fallback.score < 1.5) {
+        status = 'answered'
+        answer = `I want to make sure I give you the right answer. Could you give me a little more detail — for example, what you're seeing in your field right now? ${fallback.answer}`
+        cited = [fallback.id]
+      } else {
+        status = 'answered'
+        answer = fallback.answer
+        cited = [fallback.id]
+      }
     }
   }
 
@@ -227,10 +353,16 @@ export async function runAdvisor(input: {
   }
 
   let reply = answer
+  let truncatedAt = -1 // char index where truncation happened (-1 = no truncation)
   if (cited.length > 0 && input.channel !== 'voice') {
     const tag = ` [${SOURCE_PREFIX}: ${cited.join(',')}]`
     const room = SMS_LIMIT - tag.length
-    reply = (answer.length > room ? `${answer.slice(0, room - 1).trimEnd()}…` : answer) + tag
+    if (answer.length > room) {
+      truncatedAt = room - 1
+      reply = `${answer.slice(0, truncatedAt).trimEnd()}…${tag}`
+    } else {
+      reply = answer + tag
+    }
   }
 
   const trace: Trace = {
@@ -245,6 +377,9 @@ export async function runAdvisor(input: {
     observations: input.observations,
     escalationId,
     latencyMs: Date.now() - started,
+    // Full untruncated answer + exact cut point — used by the client "Continue" overlay
+    fullReply: answer,
+    truncatedAt,
   }
 
   addMessage({
@@ -261,28 +396,74 @@ export async function runAdvisor(input: {
 
 /** Vision step: extracts observable symptoms only. Grounded diagnosis happens in runAdvisor. */
 export async function describePhoto(image: Uint8Array, mediaType: string) {
-  if (!MODEL) return { usable: false, subject: '', observations: '' }
-  const { output } = await generateText({
-    model: MODEL,
-    output: Output.object({
-      schema: z.object({
-        usable: z.boolean().describe('False if the photo is too dark, blurry or not a plant/animal.'),
-        subject: z.string().describe('e.g. "corn leaf", "corn stalk", "corn ear", "weed"'),
-        observations: z.string().describe('Visible symptoms only, in plain English. No diagnosis, no treatment.'),
-      }),
-    }),
+  if (!VISION_MODEL) return { usable: true, subject: 'corn crop', observations: '' }
+
+  const baseURL = process.env.AI_BASE_URL
+  const apiKey = process.env.AI_GATEWAY_API_KEY
+  if (!baseURL || !apiKey) {
+    console.warn('[Harvest IQ] AI_BASE_URL or AI_GATEWAY_API_KEY not set — vision skipped')
+    return { usable: true, subject: 'corn crop', observations: '' }
+  }
+
+  // IBM watsonx exposes an OpenAI-compatible chat completions endpoint.
+  // We call it directly with fetch to avoid @ai-sdk/openai version conflicts.
+  const b64 = Buffer.from(image).toString('base64')
+  const body = {
+    model: VISION_MODEL,
     messages: [
       {
         role: 'user',
         content: [
           {
             type: 'text',
-            text: 'A smallholder farmer sent this photo from a basic phone camera. Describe only what is visibly wrong (colours, holes, spots, insects, droppings, posture, lesion shape). Do not diagnose or recommend any treatment.',
+            text: 'A corn farmer sent this photo. Reply with a JSON object with three keys: "usable" (boolean — false if too dark, blurry, or not a plant), "subject" (string — e.g. "corn leaf", "corn stalk", "weed"), "observations" (string — visible symptoms only in plain English, no diagnosis, no treatment recommendations).',
           },
-          { type: 'file', mediaType, data: image },
+          {
+            type: 'image_url',
+            image_url: { url: `data:${mediaType};base64,${b64}` },
+          },
         ],
       },
     ],
+    max_tokens: 300,
+  }
+
+  const res = await fetch(baseURL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify(body),
   })
-  return output
+
+  if (!res.ok) {
+    const errText = await res.text().catch(() => res.statusText)
+    console.warn('[Harvest IQ] Vision API error:', res.status, errText)
+    return { usable: true, subject: 'corn crop', observations: '' }
+  }
+
+  type ChatResponse = { choices?: Array<{ message?: { content?: string } }> }
+  const json = await res.json() as ChatResponse
+  const content = json.choices?.[0]?.message?.content?.trim() ?? ''
+  if (!content) return { usable: true, subject: 'corn crop', observations: '' }
+
+  // Extract JSON from the model response (it may wrap it in markdown fences)
+  const jsonMatch = content.match(/\{[\s\S]*\}/)
+  if (!jsonMatch) return { usable: true, subject: 'corn crop', observations: content }
+
+  try {
+    const parsed = JSON.parse(jsonMatch[0]) as {
+      usable?: boolean
+      subject?: string
+      observations?: string
+    }
+    return {
+      usable: parsed.usable !== false,
+      subject: typeof parsed.subject === 'string' ? parsed.subject : 'corn crop',
+      observations: typeof parsed.observations === 'string' ? parsed.observations : content,
+    }
+  } catch {
+    return { usable: true, subject: 'corn crop', observations: content }
+  }
 }

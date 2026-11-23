@@ -6,6 +6,7 @@ import {
   Music, Scissors, ZapOff, Zap, Download, Upload, ChevronLeft,
   ChevronRight, AlignLeft, Clock, Layers, Check, RefreshCw
 } from "lucide-react";
+import { ModeBar } from "@/components/layout/ModeBar";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface Clip {
@@ -207,7 +208,7 @@ export default function VideoPage() {
   return (
     <div className="flex flex-col gap-4 p-4 lg:p-6 min-h-screen bg-[#f0f4f8]">
       {/* Header */}
-      <div className="gradient-header rounded-2xl px-5 py-4 border border-sky-100">
+      <div className="gradient-header rounded-2xl px-5 py-4 border border-sky-100 space-y-3">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center shadow-sm">
             <Film className="w-5 h-5 text-white" />
@@ -217,6 +218,7 @@ export default function VideoPage() {
             <p className="text-xs text-[#7a9abf]">Beat-sync cuts · drag-free timeline · split/trim · sync markers · one-click export</p>
           </div>
         </div>
+        <ModeBar />
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">

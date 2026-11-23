@@ -15,6 +15,8 @@ export async function POST(req: Request) {
   let phone: string | null = null
   let text = ''
   let language = undefined
+  let prevQuestion = ''
+  let prevAnswer = ''
 
   const ct = req.headers.get('content-type') ?? ''
   if (ct.includes('application/x-www-form-urlencoded')) {
@@ -27,13 +29,15 @@ export async function POST(req: Request) {
     phone = normalisePhone(body.phone)
     text = String(body.text ?? '').slice(0, MAX_QUESTION)
     language = parseLanguage(body.language)
+    prevQuestion = String(body.prevQuestion ?? '')
+    prevAnswer = String(body.prevAnswer ?? '')
   }
 
   if (!phone) return Response.json({ error: 'phone is required' }, { status: 400 })
   if (!text.trim()) return Response.json({ error: 'text is required' }, { status: 400 })
 
   try {
-    const result = await runAdvisor({ phone, channel: 'sms', question: text, language })
+    const result = await runAdvisor({ phone, channel: 'sms', question: text, language, prevQuestion, prevAnswer })
     return Response.json({ reply: result.reply, status: result.trace.status })
   } catch (e) {
     console.error('[sms route ERROR]', e)

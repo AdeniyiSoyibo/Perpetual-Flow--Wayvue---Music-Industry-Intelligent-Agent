@@ -9,6 +9,6 @@ export async function GET(req: Request) {
     return Response.json(conv ?? { messages: [] })
   }
   // Return all conversations (advisor view)
-  const { getAllConversations } = await import('@/lib/store')
+  const { getAllConversations } = await import('@/lib/store-legacy')
   return Response.json(getAllConversations())
 }

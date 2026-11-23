@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import useSWR from 'swr'
 import { CheckCircle2, Phone, MessageSquare, Camera, Hash } from 'lucide-react'
-import type { Escalation } from '@/lib/store'
+import type { Escalation } from '@/lib/store-legacy'
 import { cn } from '@/lib/utils'
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json())

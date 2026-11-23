@@ -5,6 +5,7 @@ import { MARKETPLACE_BEATS } from "@/lib/marketplaceData";
 import { BeatCard } from "@/components/marketplace/BeatCard";
 import { PurchaseModal } from "@/components/marketplace/PurchaseModal";
 import { SellerDashboard } from "@/components/marketplace/SellerDashboard";
+import { ModeBar } from "@/components/layout/ModeBar";
 import type { MarketplaceBeat } from "@/lib/types";
 import {
   Store, Search, LayoutGrid, List, TrendingUp,
@@ -63,7 +64,7 @@ export default function MarketplacePage() {
     <div className="flex flex-col gap-5 p-4 lg:p-6 min-h-screen">
 
       {/* ── Header ── */}
-      <div className="gradient-header rounded-2xl px-5 py-4 border border-sky-100">
+      <div className="gradient-header rounded-2xl px-5 py-4 border border-sky-100 space-y-3">
         <div className="flex flex-wrap items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center shadow-sm flex-shrink-0">
             <Store className="w-5 h-5 text-white" />
@@ -86,6 +87,7 @@ export default function MarketplacePage() {
             </button>
           </div>
         </div>
+        <ModeBar />
       </div>
 
       {/* ── Stats row ── */}

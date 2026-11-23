@@ -1,6 +1,5 @@
 "use client";
 import { usePlatformStore } from "@/lib/store";
-import { MOCK_BEATS } from "@/lib/data";
 import { formatDuration } from "@/lib/utils";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";

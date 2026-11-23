@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Camera, MessageSquare, Mic, Phone, Send, Hash } from 'lucide-react'
-import type { Channel, Language, Message } from '@/lib/store'
+import { Camera, Mic, Phone, Send } from 'lucide-react'
+import type { Channel, Language, Message } from '@/lib/store-legacy'
 import { SPEECH_LOCALE } from '@/lib/channels'
 import { cn } from '@/lib/utils'
 
@@ -20,27 +20,204 @@ interface Props {
 }
 
 const modes: { id: Channel | 'ussd'; label: string; icon: typeof Phone }[] = [
-  { id: 'sms', label: 'SMS', icon: MessageSquare },
   { id: 'voice', label: 'Call', icon: Phone },
   { id: 'photo', label: 'Photo', icon: Camera },
-  { id: 'ussd', label: 'USSD', icon: Hash },
 ]
 
 const channelTag: Record<string, string> = { sms: 'SMS', voice: 'CALL', photo: 'PIC', ussd: 'USSD' }
 
+function prepareForSpeech(text: string): string {
+  return text
+    // Remove raw source tags like [Src: KB-N-YELLOW]
+    .replace(/\[Src:[^\]]+\]/g, '')
+    // Expand common ag abbreviations TTS reads badly
+    .replace(/\bN\b/g, 'nitrogen')
+    .replace(/\bK\b/g, 'potassium')
+    .replace(/\bP\b/g, 'phosphorus')
+    .replace(/\bISU\b/g, 'Iowa State University')
+    .replace(/\bUSDA\b/g, 'U S D A')
+    .replace(/\bGDU\b/g, 'growing degree units')
+    .replace(/\bRM\b/g, 'relative maturity')
+    .replace(/\bMRTN\b/g, 'maximum return to nitrogen')
+    .replace(/\bPSNT\b/g, 'pre-sidedress nitrate test')
+    .replace(/\blbs?\b/gi, 'pounds')
+    .replace(/\bbu\b/gi, 'bushels')
+    .replace(/\bac\b/gi, 'acre')
+    .replace(/°F/g, 'degrees Fahrenheit')
+    // Em-dash and ellipsis to natural pauses
+    .replace(/—/g, ', ')
+    .replace(/\.\.\./g, ', ')
+    // Add a brief pause after each sentence
+    .replace(/\.\s+/g, '. ')
+    .trim()
+}
+
 function speak(text: string, language: Language) {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
   window.speechSynthesis.cancel()
-  const u = new SpeechSynthesisUtterance(text)
-  u.lang = SPEECH_LOCALE[language] ?? 'en-GB'
-  u.rate = 0.92
-  window.speechSynthesis.speak(u)
+
+  const lang = SPEECH_LOCALE[language] ?? 'en-US'
+  const cleaned = prepareForSpeech(text)
+
+  const fire = (attempt = 0) => {
+    const voices = window.speechSynthesis.getVoices()
+    const u = new SpeechSynthesisUtterance(cleaned)
+    u.lang = lang
+    u.rate = 0.82        // slower = more human, less robot
+    u.pitch = 1.1        // warmer tone
+    u.volume = 1.0
+
+    if (voices.length > 0) {
+      // Priority: natural online voices first, then local, then any English
+      const preferred = [
+        'Microsoft Aria Online', 'Microsoft Jenny Online', 'Microsoft Guy Online',
+        'Samantha', 'Karen', 'Moira',
+        'Google US English', 'Google UK English Female',
+        'Microsoft Zira', 'Microsoft David',
+      ]
+      const locale = lang.split('-')[0]
+      const voice =
+        preferred.reduce<SpeechSynthesisVoice | null>(
+          (f, n) => f ?? voices.find((v) => v.name.includes(n) && v.lang.startsWith(locale)) ?? null,
+          null
+        ) ??
+        voices.find((v) => v.lang === lang) ??
+        voices.find((v) => v.lang.startsWith(locale) && !v.name.toLowerCase().includes('compact')) ??
+        voices.find((v) => v.lang.startsWith(locale)) ??
+        null
+      if (voice) u.voice = voice
+      window.speechSynthesis.speak(u)
+    } else if (attempt < 5) {
+      setTimeout(() => fire(attempt + 1), 250)
+    } else {
+      window.speechSynthesis.speak(u)
+    }
+  }
+
+  fire()
+}
+
+// ── Full-reply overlay ────────────────────────────────────────────────────────
+function FullReplyOverlay({
+  text,
+  remainder,
+  sources,
+  language,
+  onClose,
+}: {
+  text: string
+  remainder: string   // the part after the truncation — spoken first on open
+  sources: Array<{ source?: string; validatedBy?: string }>
+  language: Language
+  onClose: () => void
+}) {
+  const [speaking, setSpeaking] = useState(false)
+
+  // Auto-start reading the REMAINDER (the part the farmer hasn't heard yet)
+  useEffect(() => {
+    setSpeaking(true)
+    speak(remainder, language)
+    // Track when speech ends so the button resets
+    const poll = setInterval(() => {
+      if (typeof window !== 'undefined' && !window.speechSynthesis.speaking) {
+        setSpeaking(false)
+        clearInterval(poll)
+      }
+    }, 400)
+    return () => {
+      clearInterval(poll)
+      // Stop speech when overlay is closed
+      if (typeof window !== 'undefined') window.speechSynthesis.cancel()
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  function handleClose() {
+    if (typeof window !== 'undefined') window.speechSynthesis.cancel()
+    onClose()
+  }
+
+  function toggleSpeech() {
+    if (speaking) {
+      window.speechSynthesis.cancel()
+      setSpeaking(false)
+    } else {
+      setSpeaking(true)
+      speak(text, language)
+      const poll = setInterval(() => {
+        if (!window.speechSynthesis.speaking) {
+          setSpeaking(false)
+          clearInterval(poll)
+        }
+      }, 400)
+    }
+  }
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Full advisory message"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 sm:items-center"
+      onClick={(e) => { if (e.target === e.currentTarget) handleClose() }}
+    >
+      <div className="flex w-full max-w-lg flex-col gap-4 rounded-xl border bg-green-950 p-5 text-green-200 shadow-2xl font-mono">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-green-300/30 pb-2">
+          <span className="text-xs font-semibold uppercase tracking-widest text-green-300">
+            {speaking ? '🔊 READING…' : '◀ HARVEST IQ — FULL REPLY'}
+          </span>
+          <button
+            type="button"
+            onClick={handleClose}
+            aria-label="Close"
+            className="text-green-300 hover:text-white text-lg leading-none"
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Full text */}
+        <p className="text-sm leading-relaxed whitespace-pre-wrap">{text}</p>
+
+        {/* Sources */}
+        {sources.length > 0 && (
+          <div className="border-t border-green-300/20 pt-2 flex flex-col gap-1">
+            {sources.map((s, i) => (
+              <span key={i} className="text-[11px] opacity-60">
+                📚 {s.source}{s.validatedBy ? ` · ${s.validatedBy}` : ''}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Read aloud / Stop + Close */}
+        <div className="flex gap-2 pt-1">
+          <button
+            type="button"
+            onClick={toggleSpeech}
+            className="flex-1 rounded-md bg-green-700 py-2 text-xs font-semibold hover:bg-green-600 transition-colors"
+          >
+            {speaking ? '⏹ Stop' : '🔊 Read aloud'}
+          </button>
+          <button
+            type="button"
+            onClick={handleClose}
+            className="flex-1 rounded-md border border-green-300/40 py-2 text-xs font-semibold hover:bg-green-900 transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export function FeaturePhone(props: Props) {
   const { messages, pending, error, language, selectedId, onSelect } = props
-  const [mode, setMode] = useState<Channel | 'ussd'>('sms')
+  const [mode, setMode] = useState<Channel | 'ussd'>('voice')
   const screenRef = useRef<HTMLOListElement>(null)
+  const [overlay, setOverlay] = useState<{ text: string; remainder: string; sources: Array<{ source?: string; validatedBy?: string }> } | null>(null)
 
   useEffect(() => {
     const el = screenRef.current
@@ -48,18 +225,12 @@ export function FeaturePhone(props: Props) {
   }, [messages.length, pending])
 
   return (
-    <section aria-label="Feature phone simulator" className="mx-auto w-full max-w-xs">
-      <div className="flex flex-col gap-4 rounded-[2rem] bg-neutral-800 p-4 pb-6 text-neutral-100 shadow-xl">
-
-        {/* Status bar */}
-        <div className="flex items-center justify-between px-2 font-mono text-xs opacity-70">
-          <span>HARVEST IQ</span>
-          <span aria-hidden="true" className="flex h-2 w-10 rounded-full bg-neutral-100/20" />
-          <span>2G</span>
-        </div>
+    <>
+    <section aria-label="Advisory panel" className="w-full">
+      <div className="flex flex-col gap-4 rounded-lg border bg-card p-4 text-foreground shadow-sm">
 
         {/* LCD Screen */}
-        <div className="flex h-96 flex-col overflow-hidden rounded-md border-4 border-neutral-100/10 bg-green-950 font-mono text-green-300">
+        <div className="flex h-72 flex-col overflow-hidden rounded-md border bg-green-950 font-mono text-green-300">
           <div className="flex items-center justify-between border-b border-green-300/30 px-2 py-1 text-xs">
             <span className="flex items-end gap-0.5" aria-label="Signal strength 3 of 4">
               {[1, 2, 3, 4].map((b) => (
@@ -91,23 +262,42 @@ export function FeaturePhone(props: Props) {
                     : '< HARVEST IQ'}
                 </span>
                 {m.trace ? (
-                  <button
-                    type="button"
-                    onClick={() => onSelect(m.id ?? '')}
-                    aria-pressed={selectedId === m.id}
+                  <div
                     className={cn(
-                      'max-w-[92%] text-left',
+                      'max-w-[92%] text-left cursor-default',
                       m.trace.status === 'escalated' && 'border-l-2 border-green-300 pl-1',
-                      selectedId === m.id && 'bg-green-300 text-green-950',
                     )}
                   >
                     {(() => {
-                      const srcMatch = m.text.match(/^([\s\S]*?)\s*\[Src:[^\]]+\]$/)
-                      const body = srcMatch ? srcMatch[1] : m.text
+                      const msgText = m.text ?? ''
+                      const srcMatch = msgText.match(/^([\s\S]*?)\s*\[Src:[^\]]+\]$/)
+                      const body = srcMatch ? srcMatch[1] : msgText
+                      const isTruncated = body.endsWith('…')
+                      const fullText = typeof m.trace.fullReply === 'string' && m.trace.fullReply
+                        ? m.trace.fullReply
+                        : body.replace(/…$/, '')
+                      const cutAt = typeof m.trace.truncatedAt === 'number' && m.trace.truncatedAt > 0
+                        ? m.trace.truncatedAt
+                        : -1
                       const src = m.trace.sources?.[0]
                       return (
                         <>
                           <span>{body}</span>
+                          {isTruncated && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                // Use the server-computed cut index for a precise remainder
+                                const remainder = cutAt > 0
+                                  ? fullText.slice(cutAt).trimStart()
+                                  : fullText
+                                setOverlay({ text: fullText, remainder, sources: m.trace?.sources ?? [] })
+                              }}
+                              className="mt-1 block text-[11px] font-semibold text-green-300 hover:text-white underline underline-offset-2"
+                            >
+                              Continue ▶
+                            </button>
+                          )}
                           {src && (
                             <span className="mt-1 block text-[10px] opacity-60">
                               📚 {src.source}{src.validatedBy ? ` · ${src.validatedBy}` : ''}
@@ -116,7 +306,7 @@ export function FeaturePhone(props: Props) {
                         </>
                       )
                     })()}
-                  </button>
+                  </div>
                 ) : (
                   <span
                     className={cn(
@@ -145,7 +335,7 @@ export function FeaturePhone(props: Props) {
         </div>
 
         {/* Channel tabs */}
-        <div className="grid grid-cols-4 gap-1.5" role="tablist" aria-label="Channel">
+        <div className="grid grid-cols-2 gap-1.5" role="tablist" aria-label="Channel">
           {modes.map((m) => (
             <button
               key={m.id}
@@ -167,12 +357,10 @@ export function FeaturePhone(props: Props) {
         </div>
 
         {/* Composers */}
-        {mode === 'sms' && <SmsComposer disabled={pending !== null} onSend={props.onSms} />}
         {mode === 'voice' && (
           <VoiceComposer disabled={pending !== null} language={language} onSend={props.onVoice} />
         )}
-        {mode === 'photo' && <PhotoComposer disabled={pending !== null} onSend={props.onPhoto} />}
-        {mode === 'ussd' && <UssdComposer disabled={pending !== null} onSend={props.onUssd} />}
+        {mode === 'photo' && <PhotoComposer disabled={pending !== null} language={language} onSend={props.onPhoto} />}
 
         {/* Universal Enter = Send hint */}
         <p className="text-center font-mono text-[10px] opacity-50">
@@ -180,6 +368,17 @@ export function FeaturePhone(props: Props) {
         </p>
       </div>
     </section>
+
+    {overlay && (
+      <FullReplyOverlay
+        text={overlay.text}
+        remainder={overlay.remainder}
+        sources={overlay.sources}
+        language={language}
+        onClose={() => setOverlay(null)}
+      />
+    )}
+    </>
   )
 }
 
@@ -344,7 +543,7 @@ function VoiceComposer({
 
 // ── Photo Composer ────────────────────────────────────────────────────────────
 
-function PhotoComposer({ disabled, onSend }: { disabled: boolean; onSend: Props['onPhoto'] }) {
+function PhotoComposer({ disabled, language, onSend }: { disabled: boolean; language: Language; onSend: Props['onPhoto'] }) {
   const [file, setFile] = useState<File | null>(null)
   const [caption, setCaption] = useState('')
   const [preview, setPreview] = useState<string | null>(null)
@@ -356,10 +555,14 @@ function PhotoComposer({ disabled, onSend }: { disabled: boolean; onSend: Props[
     return () => URL.revokeObjectURL(url)
   }, [file])
 
+  const MAX_MB = 4
+  const tooBig = file ? file.size > MAX_MB * 1024 * 1024 : false
+
   const submit = async () => {
-    if (!file || disabled) return
+    if (!file || disabled || tooBig) return
     const res = await onSend(file, caption.trim())
     if (res) {
+      speak(res.reply, language)
       setFile(null)
       setCaption('')
     }
@@ -382,20 +585,33 @@ function PhotoComposer({ disabled, onSend }: { disabled: boolean; onSend: Props[
           onChange={(e) => setFile(e.target.files?.[0] ?? null)}
         />
       </label>
-      <label htmlFor="photo-caption" className="sr-only">Optional caption — press Enter to send</label>
+      {tooBig && (
+        <p className="text-xs text-red-400">Photo is too large. Please choose a photo under 4 MB.</p>
+      )}
+      {!file && (
+        <p className="text-[10px] text-neutral-400">Max photo size: 4 MB · JPEG, PNG, or WebP</p>
+      )}
+      <label htmlFor="photo-caption" className="text-xs font-medium text-green-300">
+        What do you see? <span className="text-red-400">*</span>
+        <span className="ml-1 font-normal text-neutral-400">(e.g. "yellow leaves", "weeds in corn", "wet field")</span>
+      </label>
       <input
         id="photo-caption"
         value={caption}
         maxLength={200}
         onChange={(e) => setCaption(e.target.value)}
         onKeyDown={(e) => { if (e.key === 'Enter' && !isComposing(e)) { e.preventDefault(); submit() } }}
-        placeholder="Caption (optional) → press Enter"
+        placeholder="Describe what you see in the photo…"
         className={inputClass}
+        required
       />
+      {file && !caption.trim() && (
+        <p className="text-[10px] text-red-400">Please describe what you see so we can give you the right answer.</p>
+      )}
       <button
         type="button"
         onClick={submit}
-        disabled={disabled || !file}
+        disabled={disabled || !file || !caption.trim()}
         className="flex items-center justify-center gap-2 rounded-md bg-primary py-2 text-sm text-primary-foreground disabled:opacity-40"
       >
         <Send className="size-4" aria-hidden="true" />

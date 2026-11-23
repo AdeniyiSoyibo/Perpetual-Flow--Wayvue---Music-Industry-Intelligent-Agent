@@ -454,12 +454,14 @@ If you're losing money at current prices, the first place to look is land cost a
     validatedBy: 'ISU Extension Agronomist',
     validatedOn: '2026-04-10',
     status: 'validated',
-    tags: ['cover crop', 'terminate', 'termination timing', '10 days before planting', 'planting green', 'dry spring', 'moisture', 'shorter season corn', 'herbicide corn'],
+    tags: ['cover crop', 'terminate', 'termination timing', '10 days before planting', 'planting green', 'dry spring', 'moisture', 'shorter season corn', 'herbicide corn', 'living cover crop', 'seedling pathogens', 'cover crop competition', 'planting into cover crop', 'ISU soil temperature maps', 'mesonet', '4-inch depth', 'current soil temperature', 'where find soil temperature Iowa'],
     body: `Kill your cover crop at least 10 to 14 days before you plant corn. That gives it time to die and start breaking down, which means less competition for moisture and less chance of allelopathic effects on germinating corn. Apply your burndown herbicide when the cover crop is actively growing — a green, growing cereal rye takes a glyphosate application much better than a dormant one.
 
 In a dry spring, terminate earlier — 14 to 21 days before planting. A living cover crop in a drought spring is using 0.1 to 0.3 inches of water per day. That's water your corn seed needs to germinate. ISU data shows 5 to 15 bushels per acre yield loss when cover crops are terminated within a week of planting in dry conditions.
 
-Planting green — keeping the cover crop alive until you plant or right at planting — works best in wet springs when extra moisture consumption is a benefit rather than a problem. In a dry spring, it's risky.
+Planting green — keeping the cover crop alive until you plant or right at planting — works best in wet springs when extra moisture consumption is a benefit rather than a problem. In a dry spring, it's risky. Seedling pathogens like Pythium and Fusarium can thrive in the moist, decaying residue of a freshly terminated cover crop — one more reason to give yourself 10 to 14 days before planting.
+
+Current Iowa soil temperatures before you plant: go to the ISU Mesonet site (mesonet.agron.iastate.edu) and click on "Soil Temperatures." It shows real-time readings at 4-inch depth from weather stations across the state. Check the 7-day forecast — you want a warming trend, not a cold snap coming.
 
 If you want to get a fall cover crop established after corn harvest, consider planting a shorter-season corn hybrid — 5 to 7 RM units earlier than your normal hybrid. That gives you 10 to 14 extra days before first frost to get cereal rye or radish going. You'll give up 3 to 7 bushels per acre in yield, but cover crop establishment improves a lot.`,
   },
@@ -473,14 +475,186 @@ If you want to get a fall cover crop established after corn harvest, consider pl
     validatedBy: 'ISU Extension Soil & Tillage Specialist',
     validatedOn: '2026-04-05',
     status: 'validated',
-    tags: ['compaction', 'spring tillage', 'no-till compaction', 'axle weight', 'yield drop', 'compaction depth', 'no-till causes compaction', 'fix compaction', '30-40% yield', '5-10% yield', 'tillage fix'],
+    tags: ['compaction', 'spring tillage', 'no-till compaction', 'axle weight', 'yield drop', 'compaction depth', 'no-till causes compaction', 'fix compaction', '30-40% yield', '5-10% yield', 'tillage fix', 'wet soil', 'waterlogged soil', 'soggy field', 'drainage', 'soil drainage', 'tile drainage', 'standing water corn', 'wet field', 'soil too wet', 'soil is wet'],
     body: `Compaction in Iowa corn fields most often shows up as a hardpan 3 to 6 inches deep — right where tillage equipment runs year after year, or where harvest equipment drove through wet soil. Corn roots hit that hard layer and flatten out sideways instead of going deep. In severe cases you can lose 30 to 40 percent of your yield potential. More commonly it's a 10 to 20 percent drag.
 
 No-till does not cause more compaction than conventional tillage — that's a myth. It often causes less surface compaction because you're not making as many passes. What no-till can do is let compaction build up from wheel traffic if you're running heavy equipment on wet soil repeatedly.
 
 To check if you have compaction, push a penetrometer into the soil. Readings above 300 PSI at 2 to 4 inches signal a restricting layer.
 
-Spring tillage can break a shallow pan — but only if the soil is dry enough to crumble, not ribbon, when you work it. Tilling wet soil smears the layers together and can make things worse. For deep compaction below 6 inches, you need a subsoiler or deep ripper — a normal chisel plow won't reach it.`,
+Spring tillage can break a shallow pan — but only if the soil is dry enough to crumble, not ribbon, when you work it. Tilling wet soil smears the layers together and can make things worse. For deep compaction below 6 inches, you need a subsoiler or deep ripper — a normal chisel plow won't reach it.
+
+If your soil is very wet right now: do not drive heavy equipment on it. Every pass on wet soil creates new compaction. Wait until the soil passes the ribbon test — take a handful, squeeze it, and try to roll it into a ribbon. If it ribbons easily, it's too wet to work. If it crumbles, you're okay to go.`,
+  },
+
+  // ── DISEASE — ADDITIONAL ────────────────────────────────────────────────────
+
+  {
+    id: 'KB-DIS-TAR-SPOT',
+    title: 'Tar spot in Iowa corn: identification and spray decision',
+    topic: 'disease',
+    region: 'Iowa, USA',
+    source: 'Crop Protection Network "Tar Spot of Corn" / ISU Extension',
+    validatedBy: 'ISU Extension Plant Pathologist / Crop Protection Network',
+    validatedOn: '2026-07-01',
+    status: 'validated',
+    tags: ['tar spot', 'Phyllachora maydis', 'black spots', 'fungicide tar spot', 'when to spray tar spot', 'tar spot threshold', 'identify tar spot', 'tar spot vs dirt', 'raised spots'],
+    body: `Tar spot looks like someone flicked black paint on your corn leaves — small, raised, shiny black dots scattered across the upper and lower leaf surface. They don't wipe off with your finger. That's what separates tar spot from dirt: dirt wipes off, tar spot does not. The spots are raised and feel like tiny bumps. They're caused by a fungus called Phyllachora maydis that thrives in cool, humid, cloudy conditions.
+
+The decision to spray: if you see tar spot before or at tasseling (VT to R1) on upper leaves and your hybrid is susceptible, a fungicide application at VT to R1 is worth it. Use a strobilurin-containing product — products with azoxystrobin or pyraclostrobin have shown the best results against tar spot. If you see it after R4 (dough stage), the grain is mostly filled and spraying likely won't pay.
+
+Do not wait until you see a lot of it. Tar spot can go from a few spots to widespread leaf death in 7 to 10 days under the right weather. If your neighbor has it and conditions are cool and wet, scout your fields every few days from VT onward.
+
+Yield losses can hit 40 to 60 bushels per acre in bad years in susceptible hybrids. Check with your seed company on your hybrid's tar spot rating before next year.`,
+  },
+
+  {
+    id: 'KB-DIS-STALK-ROT',
+    title: 'Stalk rot and standability: should you harvest early?',
+    topic: 'disease',
+    region: 'Iowa, USA',
+    source: 'ISU Extension "Assessing Stalk Quality" / Crop Protection Network',
+    validatedBy: 'ISU Extension Plant Pathologist',
+    validatedOn: '2026-08-15',
+    status: 'validated',
+    tags: ['stalk rot', 'standability', 'early harvest', 'push test', 'pinch test', 'stalk quality', 'lodging', 'harvest priority', 'anthracnose', 'Gibberella stalk rot', 'stalk cannibalization'],
+    body: `Stalk rot is a hidden yield robber — it causes lodging right before or during harvest and makes combining difficult. The best time to check is at the R5 to R6 stage (dough to black layer), about 3 to 4 weeks before your planned harvest.
+
+Do the push test: walk the field and push the top of the stalk sideways about 6 inches at 4 feet above the ground. If the plant doesn't spring back upright, the stalk is compromised. Alternatively, pinch the stalk between your thumb and finger 3 to 4 inches above the lowest node — if it crushes easily, the stalk is rotted inside. Check 100 plants across the field. If more than 10 to 15 percent fail the push or pinch test, move that field to the top of your harvest priority list.
+
+Causes: stalk rot happens when the plant runs out of carbohydrates late in the season and starts pulling nutrients from the stalk to fill the ear. Fields that were stressed by drought, gray leaf spot, tar spot, or high populations are most at risk.
+
+Early harvest at 22 to 25 percent moisture is much better than a 20 percent field that's lying on the ground by the time you get there.`,
+  },
+
+  {
+    id: 'KB-DIS-IDENTIFY',
+    title: 'Telling corn diseases apart: gray leaf spot, NCLB, tar spot, and bacterial leaf streak',
+    topic: 'disease',
+    region: 'Iowa, USA',
+    source: 'Crop Protection Network corn disease guide / ISU Extension',
+    validatedBy: 'ISU Extension Plant Pathologist',
+    validatedOn: '2026-07-01',
+    status: 'validated',
+    tags: ['gray leaf spot', 'northern corn leaf blight', 'NCLB', 'tar spot', 'bacterial leaf streak', 'identify disease', 'disease scouting', 'lesion shape', 'corn leaf disease', 'disease ID'],
+    body: `Here is how to tell the most common Iowa corn leaf diseases apart:
+
+Gray leaf spot: rectangular gray or tan lesions that run parallel to the leaf veins. They look like small rectangles — usually 1 to 2 inches long and about a quarter inch wide. They have a grayish, dusty surface. Most common in fields with lots of corn residue and wet, humid conditions.
+
+Northern corn leaf blight (NCLB): large cigar-shaped lesions, gray-green to tan, 1 to 6 inches long. Much bigger than gray leaf spot. They're elliptical with wavy edges, and there may be dark green, water-soaked borders when the lesion is young.
+
+Tar spot: small raised black dots scattered across the leaf surface. They look painted on and will NOT wipe off. They're much smaller than GLS or NCLB lesions.
+
+Bacterial leaf streak: wavy, irregular tan-yellow streaks that follow the veins. Unlike fungal diseases, bacterial streak lesions have no clear margin and look water-soaked when held up to light. Fungicides do not work on bacterial diseases.
+
+If you're not sure what you have, take a leaf sample to your county ISU Extension office or use the Crop Protection Network's online identification tool.`,
+  },
+
+  // ── HAIL DAMAGE ─────────────────────────────────────────────────────────────
+
+  {
+    id: 'KB-HAIL',
+    title: 'Hail damage on corn: how long to wait and when to replant',
+    topic: 'replant',
+    region: 'Iowa, USA',
+    source: 'ISU Extension "Hail Damage to Corn" / ISU crop insurance guide',
+    validatedBy: 'ISU Extension Agronomist',
+    validatedOn: '2026-06-01',
+    status: 'validated',
+    tags: ['hail', 'hail damage', 'wait after hail', 'replant hail', 'hail recovery', 'growing point', 'stalk damage', 'leaf damage', 'crop insurance hail', 'defoliation', 'bruised stalk'],
+    body: `After hail, do not make any replant decisions for at least 3 to 5 days. Corn looks much worse immediately after a hailstorm than it really is. Young corn can recover from severe leaf shredding if the growing point is still alive.
+
+How to check: dig up a few plants and split the stalk at the base. Before V6, the growing point is still below ground. If it looks white and firm, the plant will recover. If it's brown, mushy, or smells rotten, it's dead.
+
+After V6, the growing point moves above the soil surface and is more vulnerable. Bruising on the stalk that turns brown and soft within 3 to 5 days means stalk rot is setting in. Scout 5 to 7 days after the storm. Count live plants per 17-foot row section. If you have fewer than 16,000 plants per acre remaining and the growing point is dead in most plants, replanting may be worth it — but only if it's before June 5th. After that, a replanted field rarely outyields a damaged stand.
+
+Call your crop insurance agent before you do anything. Hail claims need to be documented before you replant or destroy the existing stand.`,
+  },
+
+  // ── GRAIN STORAGE & QUALITY ──────────────────────────────────────────────────
+
+  {
+    id: 'KB-STORAGE-MOLD',
+    title: 'Grain storage mold, mycotoxins, and keeping corn safe over winter',
+    topic: 'harvest',
+    region: 'Iowa, USA',
+    source: 'ISU Extension grain storage guide / USDA grain quality handbook',
+    validatedBy: 'ISU Extension Grain Systems Specialist',
+    validatedOn: '2026-09-15',
+    status: 'validated',
+    tags: ['grain mold', 'mycotoxins', 'aflatoxin', 'vomitoxin', 'DON', 'hot spots', 'aeration', 'grain quality', 'storage temperature', 'bin management', 'grain spoilage', 'safe storage'],
+    body: `Corn stored above 15 percent moisture is at real risk of mold and mycotoxin problems over the winter. The most common mycotoxin in Iowa corn is vomitoxin (DON), produced by Fusarium and Gibberella fungi. It's more of a problem after wet, cool conditions at silking. Aflatoxin is less common in Iowa but shows up after drought stress.
+
+Prevention: cool your grain to 20 to 30 degrees Fahrenheit by running aeration fans in October and November. Cold grain is safe grain. Check your grain temperature cables or probe the bin monthly. Hot spots — areas that are warmer than the rest — mean spoilage is starting. Move and condition that grain immediately.
+
+At moisture content of 15 percent or below and 30 to 40 degrees Fahrenheit, corn can be safely stored through summer. At 14 percent, it can be stored 2 to 3 years. Every half-point of moisture above 15 percent roughly doubles the risk of spoilage.
+
+If your corn was stressed by tar spot, gray leaf spot, or drought, test a representative sample for mycotoxins before selling into feed channels. Elevator buyers will dock or reject loads above 5 ppm DON for most uses. Corn above 20 ppb aflatoxin cannot be sold into interstate commerce.`,
+  },
+
+  // ── CROP INSURANCE ───────────────────────────────────────────────────────────
+
+  {
+    id: 'KB-INSURANCE',
+    title: 'Crop insurance for Iowa corn: when to call, what to document',
+    topic: 'economics',
+    region: 'Iowa, USA',
+    source: 'USDA Risk Management Agency / Iowa Farm Bureau crop insurance guide',
+    validatedBy: 'USDA-RMA / Iowa Farm Bureau',
+    validatedOn: '2026-04-01',
+    status: 'validated',
+    tags: ['crop insurance', 'prevent plant', 'replant payment', 'APH', 'yield loss claim', 'adjuster', 'document damage', 'hail insurance', 'multi-peril', 'MPCI', 'when to call insurance', 'notice of loss'],
+    body: `Call your crop insurance agent before you replant, destroy a damaged stand, or make any major management change to a damaged field. Once you've worked the ground or destroyed the crop, it's very difficult to file a successful claim. This is especially true for hail, flooding, and replant situations.
+
+Notice of loss: most multi-peril (MPCI) policies require you to notify your agent within 72 hours of discovering a loss, or by the acreage reporting date. Missing this deadline can void your claim.
+
+Prevented planting: if you can't get into the field before the final planting date for your county (usually June 5 for corn in Iowa), you may qualify for a prevented planting payment. Do not plant any crop on that ground until your adjuster has visited. Planting a cover crop on a prevented planting acre can reduce your payment.
+
+Documenting your APH (Actual Production History): keep yield records by field, not just farm total. Your APH yield is the average of your last 4 to 10 years of production and directly sets your coverage level. Low-yield years from weather events can often be replaced with the county T-yield — ask your agent.
+
+Replant payments: most policies include a replant provision that pays a flat amount per acre if you need to replant. The threshold is usually a stand below the policy minimum — check your policy. Take photos and have your adjuster out before you replant.`,
+  },
+
+  // ── HERBICIDE MANAGEMENT ────────────────────────────────────────────────────
+
+  {
+    id: 'KB-WEED-CARRYOVER',
+    title: 'Herbicide carryover injury to corn',
+    topic: 'weeds',
+    region: 'Iowa, USA',
+    source: 'ISU Extension "Herbicide Carryover" / Purdue Extension weed science',
+    validatedBy: 'ISU Extension Weed Scientist',
+    validatedOn: '2026-05-01',
+    status: 'validated',
+    tags: ['herbicide carryover', 'carryover injury', 'atrazine carryover', 'soybean herbicide corn', 'soil residual', 'rotational restriction', 'chlorimuron', 'metribuzin', 'yellow corn herbicide', 'pH carryover'],
+    body: `Herbicide carryover injury to corn usually shows up as yellowing, stunting, or leaf burn within 2 to 3 weeks of emergence. The most common culprits in Iowa are atrazine applied at high rates the previous year, or soybean herbicides like chlorimuron (Classic) or metribuzin that weren't supposed to rotate to corn.
+
+How to tell: carryover injury is usually worst in areas where the previous crop was stressed — dry spots, compacted areas, or areas with low organic matter. That's where herbicide breaks down slowest. The pattern follows field variability, not rows or spray tracks.
+
+Most common scenario: a soybean herbicide with a corn rotation restriction (check the label — it lists the months until corn can be planted). If you planted corn on a field that had soybeans treated with a restricted product, and corn looks stunted with yellowing between the veins (interveinal chlorosis), carryover is likely.
+
+What to do: there's no fix for carryover injury in the current crop. The plants either recover on their own as the residue breaks down, or they don't. Evaluate the stand at V3 to V4 — if it looks viable, continue normal management. If it's a severe stand loss, file a crop insurance notice of loss and contact your herbicide company rep.`,
+  },
+
+  // ── LATE PLANTING ────────────────────────────────────────────────────────────
+
+  {
+    id: 'KB-PLANT-LATE',
+    title: 'Late planting in Iowa: yield penalty and hybrid selection',
+    topic: 'planting',
+    region: 'Iowa, USA',
+    source: 'ISU Extension "Late Planting and Hybrid Maturity" / ISU planting date trials',
+    validatedBy: 'ISU Extension Agronomist',
+    validatedOn: '2026-05-01',
+    status: 'validated',
+    tags: ['late planting', 'delayed planting', 'planting date', 'yield penalty', 'May planting', 'June planting', 'hybrid maturity late', 'switch hybrid', 'late corn', 'June 1 corn', 'shorter maturity'],
+    body: `In Iowa, every day you delay planting after May 1st costs you roughly half a bushel per acre per day through mid-May, and about 1 bushel per acre per day from mid-May through early June. Planting on June 1 instead of May 1 can cost you 25 to 35 bushels per acre in a normal year.
+
+After June 1, consider switching to a hybrid that is 5 to 7 RM units shorter than your normal choice. For example, if you normally plant a 108-day hybrid, consider a 101 to 103-day hybrid for late June planting. This reduces the risk of an early frost cutting off grain fill. You'll give up some yield potential, but the shorter hybrid has a better chance of reaching black layer before frost.
+
+After June 10, corn planted in Iowa has a significant risk of not reaching maturity before a killing frost (28°F). In most Iowa locations, that frost comes by October 10 to 15. A 110-day hybrid planted June 10 needs 110 more growing days — that math does not work most years.
+
+If you can't plant by June 10 to 15, consider switching to soybeans instead. Soybeans planted in mid-June still produce a reasonable crop. Corn planted that late rarely does.`,
   },
 
   // ── PENDING ─────────────────────────────────────────────────────────────────

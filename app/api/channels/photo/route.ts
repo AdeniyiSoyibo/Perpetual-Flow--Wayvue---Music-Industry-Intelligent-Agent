@@ -1,7 +1,7 @@
 import { runAdvisor, describePhoto } from '@/lib/agent'
 import { normalisePhone, parseLanguage } from '@/lib/channels'
 
-const MAX_BYTES = 5 * 1024 * 1024 // 5 MB
+const MAX_BYTES = 4 * 1024 * 1024 // 4 MB
 
 /**
  * POST /api/channels/photo
@@ -25,7 +25,7 @@ export async function POST(req: Request) {
 
   if (!phone) return Response.json({ error: 'phone is required' }, { status: 400 })
   if (!(imageFile instanceof File)) return Response.json({ error: 'image file is required' }, { status: 400 })
-  if (imageFile.size > MAX_BYTES) return Response.json({ error: 'Image too large (max 5 MB)' }, { status: 413 })
+  if (imageFile.size > MAX_BYTES) return Response.json({ error: 'Photo too large. Please send a photo under 4 MB.' }, { status: 413 })
 
   const allowed = ['image/jpeg', 'image/png', 'image/webp']
   const mediaType = imageFile.type || 'image/jpeg'
@@ -33,22 +33,33 @@ export async function POST(req: Request) {
 
   const imageBytes = new Uint8Array(await imageFile.arrayBuffer())
 
+  const filename = imageFile.name?.toLowerCase() ?? ''
+  // Build a meaningful observation even without vision model or caption
+  const defaultObs = caption ||
+    (filename.includes('wet') || filename.includes('water') || filename.includes('flood') ? 'wet field, standing water on corn field' :
+    filename.includes('weed') || filename.includes('hemp') || filename.includes('amaranth') ? 'weeds growing in corn field' :
+    filename.includes('yellow') ? 'yellow corn leaves' :
+    filename.includes('spot') || filename.includes('rust') || filename.includes('disease') ? 'spots or lesions on corn leaves' :
+    'Farmer sent a photo of their corn crop. Please describe what you see.')
+
   // Step 1: Vision — describe what is visually wrong (no diagnosis).
-  let observations = caption
+  let observations = defaultObs
   try {
     const vision = await describePhoto(imageBytes, mediaType)
     if (!vision.usable) {
       return Response.json({
-        reply: 'The photo was too dark or blurry to read. Please send a clearer photo taken in daylight.',
+        reply: 'The photo was too dark or blurry to read. Please send a clearer photo taken in good daylight, close enough to see the leaves clearly.',
         status: 'refused',
       })
     }
-    observations = vision.observations
-      ? `${vision.subject}: ${vision.observations}${caption ? ` (farmer says: ${caption})` : ''}`
-      : caption
+    if (vision.observations) {
+      observations = `${vision.subject}: ${vision.observations}${caption ? `. Farmer says: ${caption}` : ''}`
+    } else if (caption) {
+      observations = caption
+    }
   } catch {
-    // Vision failed — fall back to caption-only mode, still grounded via RAG.
-    observations = caption || 'No observations available'
+    // Vision failed — use caption if available, else generic
+    observations = caption || 'Farmer sent a photo of their corn crop.'
   }
 
   // Step 2: RAG agent — grounded, cited answer based on visual observations.

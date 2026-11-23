@@ -74,8 +74,3 @@ export function usePlatformStore(): PlatformState {
   return ctx;
 }
 
-// ── Legacy HarvestIQ stubs (re-exported for client-component compatibility) ───
-export type {
-  Language, Channel, AnswerStatus, Trace, Message, Farmer, Conversation, Escalation,
-} from "./store-legacy";
-export { farmers, addMessage, getConversation, getAllConversations, getFarmer, createEscalation, getEscalations, resolveEscalation } from "./store-legacy";

@@ -21,7 +21,7 @@ const TEST_PROFILES: { tier: Tier; label: string; color: string }[] = [
 ];
 
 const NAV_ITEMS = [
-  { href: "/",            label: "Production",   icon: Disc3    },
+  { href: "/production",  label: "Production",   icon: Disc3    },
   { href: "/streaming",   label: "Streaming",    icon: Radio    },
   { href: "/dj",          label: "DJ Mode",      icon: Music2   },
   { href: "/anr",         label: "A&R",          icon: Users    },
@@ -51,6 +51,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const hasPlayer = !!currentTrack;
   const [showTestPanel, setShowTestPanel] = useState(false);
 
+  // Landing page and mode-select render full-screen without the sidebar shell
+  if (pathname === "/" || pathname === "/select") return <>{children}</>;
+
   const quickSignIn = (tier: Tier) => {
     signIn({ id: "test-user", name: `Test ${tier.replace("_"," ")}`, email: "test@perceptualflow.app", tier, avatarInitials: "TU" });
   };
@@ -58,15 +61,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const NavContent = () => (
     <div className="flex flex-col h-full">
       {/* Logo */}
-      <div className="flex items-center gap-3 px-5 py-5 border-b border-[#cdd8e8]">
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center shadow-md">
+      <Link href="/" className="flex items-center gap-3 px-5 py-5 border-b border-[#cdd8e8] hover:bg-[#f8fafc] transition-colors">
+        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500 to-sky-400 flex items-center justify-center shadow-md">
           <Disc3 className="w-5 h-5 text-white" />
         </div>
         <div>
-          <div className="text-sm font-bold text-[#1a2a3a] leading-none">Perceptual Flow</div>
+          <div className="text-sm font-bold text-[#1a2a3a] leading-none">Perpetual Flow</div>
           <div className="text-[10px] text-[#7a9abf] mt-0.5 font-medium">Music Intelligence v0.5</div>
         </div>
-      </div>
+      </Link>
 
       {/* Nav */}
       <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">

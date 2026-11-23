@@ -18,8 +18,8 @@ export interface Track {
   id: string; title: string; artist: string; album?: string; coverUrl: string;
   duration: number; bpm: number; energy: number; valence: number; danceability: number; key: string;
   src?: string;          // audio/video URL or blob URL — optional for mock data
-  embedUrl?: string;     // YouTube/SoundCloud embed URL
-  platform?: "file" | "youtube" | "soundcloud" | "url" | "mock";
+  embedUrl?: string;     // embed URL (YouTube/SoundCloud/Deezer widget)
+  platform?: "file" | "youtube" | "soundcloud" | "deezer" | "spotify" | "applemusic" | "amazonmusic" | "tidal" | "tencent" | "netease" | "iheartradio" | "pandora" | "url" | "mock" | "audius";
 }
 
 export interface Playlist { id: string; name: string; description: string; tracks: Track[]; flowScore: number; }
