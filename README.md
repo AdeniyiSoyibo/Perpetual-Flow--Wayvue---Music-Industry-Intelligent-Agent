@@ -1,152 +1,132 @@
-# 🌾 Harvest IQ
+# 🎵 Perpetual Flow — Wayvue Music Industry Intelligent Agent
 
-**Global agentic farm advisory platform** — delivers expert, RAG-powered agricultural guidance to smallholder farmers over SMS, voice calls, photos, and USSD. No smartphone required.
-
----
-
-## What it does
-
-- Farmers send a question (text, voice, or photo) from any phone
-- An AI agent searches a validated global knowledge base (RAG)
-- Replies are sent back in the farmer's language (10 languages supported)
-- High-stakes questions are automatically escalated to a human advisor
-- Works on feature phones via SMS, voice calls, and USSD (`*XXX#`)
+**Perpetual Flow** is an AI-powered music industry platform built for DJs, producers, A&R professionals, and artists. It combines professional DJ tooling, video mixing, beat production, streaming, artist discovery, and an intelligent AI agent — all in one unified platform.
 
 ---
 
-## Quick start
+## 🚀 Live Demo
 
-### 1. Prerequisites
+> Public prototype available at the Cloudflare tunnel URL shared with judges.
 
-| Tool | Version | Install |
-|------|---------|---------|
-| Node.js | ≥ 20 | https://nodejs.org |
-| pnpm | ≥ 9 | `npm install -g pnpm` |
+---
 
-### 2. Install dependencies
+## 🎛️ Features
+
+### DJ Mode
+- Dual audio deck controllers with vinyl platter simulation
+- Professional scratch engine (Web Audio API — sawtooth → bandpass filter)
+- 3-band EQ + Trim per deck
+- Hot Cues (8 per deck), Loop controls (IN/OUT/÷2/×2), Auto-loop by beat count
+- Pitch/Tempo fader with ±4/8/16/50% range, Key Lock, TAP BPM, BPM Match
+- Crossfader with equal-power curve (no bleed at extremes)
+- CUE monitor routing with headphone volume control
+- MIDI hardware controller support (Web MIDI API)
+- Sample Pads (8 pads, custom audio upload)
+- Sound Browser with categorised FX
+- Set Builder with flow score and BPM arc
+- Autopilot mode — AI manages Deck B and mix timing
+
+### Video Mixer
+- Dual YouTube deck controller with live iframe embeds
+- Scratch simulation, Hot Cues, Loop, EQ per deck
+- Crossfader with transition FX (Echo Out, Low-Pass, Riser, Rewind)
+- System audio capture via `getDisplayMedia`
+- Sample pads (8 synth sounds)
+
+### Production Studio
+- Beat library with BPM/key filtering
+- AI beat generation suggestions
+
+### Streaming
+- Multi-platform stream player (YouTube, SoundCloud, Deezer)
+
+### A&R Console
+- Artist discovery and scouting tools
+- AI-powered talent analysis
+
+### Marketplace
+- Beat and sample licensing
+
+### AI Agent (IntentBar)
+- Floating assistant drawer available across all modes
+- Context-aware suggestions per mode (DJ, Production, A&R, etc.)
+- Powered by IBM watsonx (Llama 4 Scout)
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 15 (App Router) |
+| Language | TypeScript |
+| Styling | Tailwind CSS v4 |
+| Audio Engine | Web Audio API (no external libraries) |
+| MIDI | Web MIDI API |
+| AI | IBM watsonx — Llama 4 Scout 17B |
+| State | Zustand + React Context |
+| Deployment | Railway / Cloudflare Tunnel |
+
+---
+
+## 🏃 Running Locally
 
 ```bash
+# Install dependencies
 pnpm install
-```
 
-### 3. Set up your AI API key
+# Add environment variables
+cp .env.example .env.local
+# Set AI_GATEWAY_API_KEY and AI_BASE_URL in .env.local
 
-Edit `.env.local` and add your Google Gemini API key:
-
-```env
-AI_GATEWAY_API_KEY=your_google_gemini_api_key_here
-```
-
-**Get a free key in 30 seconds:**
-1. Go to [https://aistudio.google.com/apikey](https://aistudio.google.com/apikey)
-2. Sign in with your Google account
-3. Click **Create API key**
-4. Copy and paste it into `.env.local`
-
-> **Free tier:** Google Gemini Flash offers a generous free tier with no credit card required — enough for development and small-scale pilots.
-
-### 4. Run the development server
-
-```bash
+# Start development server
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to see the app.
+Open [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## Pages
-
-| URL | Description |
-|-----|-------------|
-| `/` | Farmer simulator — test the platform as a farmer |
-| `/advisor` | Advisor desk — review and respond to escalated questions |
-| `/knowledge` | Knowledge base — view all validated agricultural documents |
-
----
-
-## API endpoints
-
-All channels accept a question and return an AI-generated reply.
-
-### SMS channel
-```
-POST /api/channels/sms
-Content-Type: application/json
-
-{ "phone": "+265771234567", "text": "How do I treat fall armyworm?", "language": "en" }
-```
-
-### Voice channel
-```
-POST /api/channels/voice
-Content-Type: application/json
-
-{ "phone": "+265771234567", "text": "My maize leaves are turning yellow", "language": "ny" }
-```
-
-### Photo channel
-```
-POST /api/channels/photo
-Content-Type: application/json
-
-{ "phone": "+265771234567", "imageUrl": "https://...", "caption": "What is wrong with my crop?" }
-```
-
-### USSD channel (Africa's Talking format)
-```
-POST /api/channels/ussd
-Content-Type: application/x-www-form-urlencoded
-
-sessionId=ABC&phoneNumber=%2B265771234567&text=1%2Amaize+armyworm
-```
-
-### Conversations
-```
-GET /api/conversations?phone=+265771234567   # get farmer history
-GET /api/conversations                       # get all conversations
-```
-
-### Escalations
-```
-GET /api/escalations                         # list open escalations
-POST /api/escalations                        # resolve an escalation
-```
-
----
-
-## Changing the AI model
-
-Edit `.env.local`:
+## 🔑 Environment Variables
 
 ```env
-# Google Gemini (default — free tier available)
-AI_MODEL=google/gemini-3.8-flash
-
-# Higher quality Google model
-AI_MODEL=google/gemini-2.5-pro
-
-# Anthropic Claude (needs Anthropic API key)
-AI_GATEWAY_API_KEY=your_anthropic_key_here
-AI_MODEL=anthropic/claude-sonnet-5-5
-
-# OpenAI GPT (needs OpenAI API key)
-AI_GATEWAY_API_KEY=your_openai_key_here
-AI_MODEL=openai/gpt-5-mini
+AI_GATEWAY_API_KEY=your_ibm_watsonx_api_key
+AI_BASE_URL=https://us-south.ml.cloud.ibm.com/ml/v1/text/chat
+AI_VISION_MODEL=meta-llama/llama-4-scout-17b-16e-instruct
 ```
 
 ---
 
-## Languages supported
+## 📁 Project Structure
 
-English · Chichewa · Swahili · Hindi · Bahasa Indonesia · Spanish · French · Portuguese · Filipino · Vietnamese
+```
+app/
+  dj/              — DJ Mode page
+  video-mixer/     — Video Mixer page
+  production/      — Production Studio page
+  streaming/       — Streaming page
+  anr/             — A&R Console page
+  marketplace/     — Marketplace page
+  api/             — API routes (AI agent, channels)
+
+components/
+  dj/              — DeckController, CrossfaderModule, SamplePad, SoundBrowser,
+                     SetBuilder, YouTubeMixPanel, HardwareConnectPanel, MidiEngine
+  layout/          — AppShell, ModeBar, IntentBar
+  production/      — ProductionStudio, BeatLibrary
+  streaming/       — StreamPlayer
+  advisor/         — A&R desk
+
+lib/
+  store.tsx        — Global state (Zustand)
+  types.ts         — Shared TypeScript types
+  agent.ts         — AI agent logic
+```
 
 ---
 
-## Tech stack
+## 🏆 IBM BeMyApp North America Competition Entry
 
-- **Framework:** Next.js 16 (App Router)
-- **AI:** Vercel AI SDK v7 — `ToolLoopAgent` + RAG pipeline
-- **Knowledge base:** Static validated documents (no external DB needed)
-- **Channels:** SMS, Voice, Photo, USSD
-- **Language:** TypeScript
+**Project:** Perpetual Flow — Wayvue Music Industry Intelligent Agent  
+**Category:** AI-powered creative tools  
+**Built with:** IBM watsonx, Next.js, Web Audio API, Web MIDI API
